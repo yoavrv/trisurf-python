@@ -44,6 +44,7 @@ def get_statistics_from_vtu(vtu_location, v, w):
     norms = np.zeros((tlist.shape[0], 3))
     nvtx = len(c)
 
+    ######################
     # get volume and area:
     xyz0 = pos[tlist[:, 0], :]
     xyz1 = pos[tlist[:, 1], :]
@@ -57,17 +58,20 @@ def get_statistics_from_vtu(vtu_location, v, w):
     total_area = double_areas.sum()/2
     total_volume = -eighteen_volumes.sum()/18
 
+    ##################################################
     # get gyration eigenvalues G_mn = 1/N sum(r_n r_m)
     # which is G = (pos.T @ pos) / nvtx
     gy_eig = np.linalg.eigvalsh((pos.T @ pos) / nvtx)
     gy_eig.sort()
 
+    ##############################################################
     # get bonds with energy
     # bonds_with_e = active[bond->vtx[0]] and active[bond->vtx[1]]
     # nbw = sum(bonds_with_e)
     nbw_nb = (active[blist[:, 0]] & active[blist[:, 1]]).sum()
     nbw_nb /= (blist.shape[0])
 
+    ######################################################
     # mean curvature:
     # a lot harder, since we don't have neighbors directly
     # the components of summation are
@@ -80,7 +84,7 @@ def get_statistics_from_vtu(vtu_location, v, w):
 
     # summing the normals is now easy
     # (and we're looking for sign - no need to fuss about constants)
-    norms /= double_areas[:, np.newaxis]  # normalize vectors, (was skipped)
+    norms /= double_areas[:, np.newaxis]  # normalizing vectors was skipped
     # add the normal to each vertex in the triangle:
     # vtx_normal[tri->vtx[0]] += tri->normal. then for 1 and 2
     # problematic due to repeated indices in triangles- two triangles can
@@ -92,12 +96,13 @@ def get_statistics_from_vtu(vtu_location, v, w):
     # Summing other part is more difficult
     # we go on each vertex of the triangle
     # and add the relevant vector to rh
-    # on 0th vtx of each triangle:
     bond_sqr01 = np.einsum('ij,ij->i', xyz1-xyz0, xyz1-xyz0)
     bond_sqr02 = np.einsum('ij,ij->i', xyz2-xyz0, xyz2-xyz0)
     bond_sqr12 = np.einsum('ij,ij->i', xyz2-xyz1, xyz2-xyz1)
+
+    # on 0th vtx of each triangle:
     dot_prod_at = np.einsum('ij,ij->i', xyz1-xyz0, xyz2-xyz0)
-    cot_at = dot_prod_at / np.sqrt(bond_sqr01 * bond_sqr02 - dot_prod_at ** 2)
+    cot_at = dot_prod_at / np.sqrt(bond_sqr01*bond_sqr02 - dot_prod_at**2)
     # 2*dual bond = 2*l_ij*(cot) (sigma is actually double_sigma)
     sigma_12 = cot_at[:, np.newaxis] * (xyz2 - xyz1)
     # contributions to 1 and 2: l_ij * cot (/2 later)
@@ -105,51 +110,55 @@ def get_statistics_from_vtu(vtu_location, v, w):
     numpy_sum_extend(rh, tlist[:, 2], -sigma_12)
 
     # on 1th vtx of each triangle
-    dot_prod_at = np.einsum('ij,ij->i', xyz2 - xyz1, xyz0 - xyz1)
-    cot_at = dot_prod_at / np.sqrt(bond_sqr12 * bond_sqr01 - dot_prod_at ** 2)
+    dot_prod_at = np.einsum('ij,ij->i', xyz2-xyz1, xyz0-xyz1)
+    cot_at = dot_prod_at / np.sqrt(bond_sqr12*bond_sqr01 - dot_prod_at**2)
     sigma_20 = cot_at[:, np.newaxis] * (xyz0 - xyz2)
     # contributions to 2 and 0:
     numpy_sum_extend(rh, tlist[:, 2], sigma_20)
     numpy_sum_extend(rh, tlist[:, 0], -sigma_20)
 
     # on 2th vtx
-    dot_prod_at = np.einsum('ij,ij->i', xyz0 - xyz2, xyz1 - xyz2)
-    cot_at = dot_prod_at / np.sqrt(bond_sqr12 * bond_sqr02 - dot_prod_at ** 2)
+    dot_prod_at = np.einsum('ij,ij->i', xyz0-xyz2, xyz1-xyz2)
+    cot_at = dot_prod_at / np.sqrt(bond_sqr12*bond_sqr02 - dot_prod_at**2)
     sigma_01 = cot_at[:, np.newaxis] * (xyz1 - xyz0)
     # contributions to 1 and 2:
     numpy_sum_extend(rh, tlist[:, 0], sigma_01)
     numpy_sum_extend(rh, tlist[:, 1], -sigma_01)
 
-    # total (taken from the c code), /2 we didn't do before
+    # h per vertex, /2 we didn't do before
     h = np.sqrt(np.einsum('ij,ij->i', rh, rh))/2
-    # -h if pointing the other way (maybe minus by vertex order)
+    # -h if pointing the other way (mtriangle vertex order: maybe -?)
     h[np.einsum('ij,ij->i', rh, tnh) < 0] *= -1
     hmean = h.sum() / (2 * total_area)
 
     # few! that was not nice
 
-    # perimeter: each unique vertex "x" in a triangle has a boundary
-    # betwween the others: |sigma_xy|+|sigma_xz|
-    # sigmas are still twice
+    #############################################################
+    # perimeter: if vertex "x" in a triangle is unique, there's a
+    # domain boundary running through: |sigma_xy|+|sigma_xz|
     perim = 0
-    # 0th vertex is unique, 0!=1 and 1==2
+    # for any 0th vertex that is unique, 0!=1 and 1==2
     unique_vtx = ((active[tlist[:, 0]] != active[tlist[:, 1]])
                   & (active[tlist[:, 1]] == active[tlist[:, 2]]))
     perim += np.linalg.norm(sigma_20[unique_vtx, :], axis=1).sum()
     perim += np.linalg.norm(sigma_01[unique_vtx, :], axis=1).sum()
-    # 1th vertex is unique, 1!=2 and 2==0
+    # fo any 1th vertex that is unique, 1!=2 and 2==0
     unique_vtx = ((active[tlist[:, 1]] != active[tlist[:, 2]])
                   & (active[tlist[:, 2]] == active[tlist[:, 0]]))
     perim += np.linalg.norm(sigma_01[unique_vtx, :], axis=1).sum()
     perim += np.linalg.norm(sigma_12[unique_vtx, :], axis=1).sum()
-    # 2th vertex is unique, 2!=0 and 0==1
+    # for any 2th vertex that is unique, 2!=0 and 0==1
     unique_vtx = ((active[tlist[:, 2]] != active[tlist[:, 0]])
                   & (active[tlist[:, 0]] == active[tlist[:, 1]]))
     perim += np.linalg.norm(sigma_12[unique_vtx, :], axis=1).sum()
     perim += np.linalg.norm(sigma_20[unique_vtx, :], axis=1).sum()
+    # sigmas where still 2*sigma
     perim /= 2
 
-    # cluster stuff: in ts_vtu_to_python
+    ####################################
+    # cluster size distribution:
+    # rehash of what's done in ts_vtu_to_python
+    # but using more obtuse numpy trick
     adj = sp.lil_matrix((nvtx, nvtx), dtype=bool)
     active_bonds = active[blist[:, 0]] & active[blist[:, 1]]
     adj[blist[active_bonds, 0], blist[active_bonds, 1]] = True
@@ -163,9 +172,13 @@ def get_statistics_from_vtu(vtu_location, v, w):
                         / (n_clusters-1))
     std_cluster_size = np.sqrt(std_cluster_size)
 
+    ##############################
+    # write histogram if requested
     if w:
         v2p.write_cluster_hist(dist_size, vtu_location, v)
 
+    ######
+    # done
     if v:
         print("done with ", vtu_location)
 
