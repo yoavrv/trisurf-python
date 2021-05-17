@@ -23,13 +23,15 @@ def numpy_sum_extend(array_to_add_to, array_extend_indices, array_to_add_from):
         array_to_add_to[j, ...] += array_to_add_from[i, ...]
 
 
-def get_statistics_from_vtu(vtu_location, v):
+def get_statistics_from_vtu(vtu_location, v, w):
     """Get main statisticd (order parameters) from .vtu file.
 
     Takes vtu_location, the path of the vtu file, and v, the verbosity flag
     extract the geometry and calculates volume, area, gyration eigenvalues,
     active bond fraction, mean curvature, mean and std cluster size, and
     cmc-bare vesicle perimeter
+    Optionally, takes -w and writes a histogram file
+    and -v and being verbose
     """
     # Load geometry from file
     xyz, b, t = v2p.vtu_get_geometry(vtu_location)
@@ -161,6 +163,9 @@ def get_statistics_from_vtu(vtu_location, v):
                         / (n_clusters-1))
     std_cluster_size = np.sqrt(std_cluster_size)
 
+    if w:
+        v2p.write_cluster_hist(dist_size, vtu_location, v)
+
     if v:
         print("done with ", vtu_location)
 
@@ -169,23 +174,32 @@ def get_statistics_from_vtu(vtu_location, v):
 
 
 def main():
-    """Parse command line args to find .vtu files, create cluster histogram.
+    """Parse command line args to find .vtu files, generates statistics.
 
-    See argparse description for how to use.
-    Example use:
-    >$python ts_vtu_get_cluster_stat .
-    All .vtu in current directory get a histogram file
-    >$python ts_vtu_get_cluster_stat /vtu_cache
-    All .vtu files in /vtu_cache directory get a histogram file
-    >$python ts_vtu_get_cluster_stat ./my_favorite_vtu.vtu
-    Creates ./histogram_my_favorite_vtu.csv file
-    cluster_size, number_of_clusters
-    1, 2013
-    2,56
-    ...
-    etc
+    Takes any number of vtu files or directory, consolidate statistics
+    to a single file (in alphabetical order) specified by
+    -o filename.csv (default pystatistics.csv). Statistics are:
+    No, Volume, Area, lamdba1, lambda2, lambda3, Nbw/Nb,
+    hbar, mean_cluster_size, std_cluster_size, and line_length
+    more options:
+    -v: verbosity, yap endlessly
+    -w: write a histogram for each vtu
+
+    for example:
     >$python ts_vtu_get_cluster_stat timestep_000*
-    Creates historgam_000*.vtu files
+    Creates pystatistics.csv:
+        0, volume, area, ... linelength
+        1, Volume, area, ... linelength
+    >$python ts_vtu_get_cluster_stat . -o stat -w
+    Creates stat.csv:
+        0, volume, area, ... linelength
+        1, Volume, area, ... linelength
+    and historgams
+    |-histogrma_000001.csv
+    |-histogrma_000002.csv
+    |-histogrma_000014.csv
+    (notice that it doesn't write the file number into No,
+     it just goes by alphabetical order)
     """
     # parse the arguments:
     parser = argparse.ArgumentParser(
@@ -194,16 +208,19 @@ def main():
         ''')
     parser.add_argument("vtu_in", nargs='+',
                         help='.vtu files or directories with .vtu files')
-    parser.add_argument("csv_out", help='.csv file name to write',
-                        default='quickstat.csv')
+    parser.add_argument("-o", "--out-file", help='.csv file name to write',
+                        default='pystatistics.csv')
     parser.add_argument("-v", "--verbose", help='increase output verbosity',
+                        action="store_true")
+    parser.add_argument("-w", "--write-cluster", help='write histogram files',
                         action="store_true")
     args = parser.parse_args()
 
-    new_file = args.csv_out  # name of file to create
+    new_file = args.out_file  # name of file to create
     # if just name: make here. must end with .csv
     new_file = os.path.splitext(new_file)[0] + '.csv'
     v = args.verbose  # ease verbosity checks
+    w = args.write_cluster
 
     # make the files input iterable, even if there is only one file
     if not isinstance(args.vtu_in, list):
@@ -238,7 +255,7 @@ def main():
         # get only .vtu files
         vtus = [s for s in strings if s.endswith('.vtu')]
         if v:
-            print('got ', vtus)
+            print("got ", len(vtus), " files", vtus[:5], "...")
 
         all_vtus.extend(vtus)
 
@@ -249,21 +266,26 @@ def main():
                    "lambda3", "Nbw/Nb", "hbar", "mean_cluster_size",
                    "std_cluster_size", "line_length"]
 
+    ##########################################
     # now has all vtu files. For each file:
-    # Calculate cluster size distribution and
-    # write a histogram_*.csv
+    # Calculate and return statistics and
+    # potentially write a histogram_*.csv
+    # (uses the intimidately-named "multiprocessing for dummies"
+    # python module instead of a for loop)
     with concurrent.futures.ProcessPoolExecutor() as executor:
         stat_futures = executor.map(get_statistics_from_vtu,
-                                    all_vtus, (v for x in all_vtus))
+                                    all_vtus, (v for x in all_vtus),
+                                    (w for x in all_vtus))
 
-    # debug: regular:
+    # debug: regular, non multiprocessing:
     # stat_futures = []
     # for vtu in all_vtus:
     #     stat_futures.append(get_statistics_from_vtu(vtu, v))
 
     if v:
-        print("writing to file ", new_file)
+        print("writing to main statistics file ", new_file)
 
+    # write main statistics file
     with open(new_file, 'w', newline='') as stat_file:
         writer = csv.writer(stat_file)
         writer.writerow(stat_header)

@@ -18,6 +18,8 @@ Yoav.Ravid@weizmann.ac.il
 import xml.etree.ElementTree as ET
 import numpy as np
 import scipy.sparse as sp
+import os
+import csv
 
 
 # useful internal functions
@@ -83,6 +85,7 @@ def vtu_get_tape(vtu_location):
 
     return tape.text
 
+
 def vtu_get_vertex_data(vtu_location):
     """Take path '/here/file.vtu',returns curvature, bending energy.
 
@@ -105,77 +108,6 @@ def vtu_get_vertex_data(vtu_location):
     benergy = [float(x) for x in b_txt]
 
     return np.array(c), np.array(benergy)
-
-
-def adjacency_from_bonds(bonds, keep=None, n_vertex=-1):
-    """Take bond list, return sparse adjacency matrix.
-
-    Takes bond, list of vertex pairs [[0, 1],[0, 3],[2, 7],...[101, 201]]
-    May also take keep, list of vertex to keep (defaults to keep all)
-    May also take n_vertex, so n_vertex^2 is size of the adjacency matrix
-    If not given number of vertices, automatically calculates it
-    """
-    if n_vertex < 0:
-        n_vertex = max(max(bonds))
-    adj_mat = sp.lil_matrix((n_vertex, n_vertex), dtype=bool)
-    if keep is None:
-        for a, b in bonds:
-            adj_mat[a, b] = True
-            adj_mat[b, a] = True
-    else:
-        for a, b in bonds:
-            if a in keep:
-                if b in keep:
-                    adj_mat[a, b] = True
-                    adj_mat[b, a] = True
-    return adj_mat
-
-
-def cluster_dist_from_adjacency(adj, keep=None):
-    """Take adjacency matrix and give cluster size distribution.
-
-    Return a vector [n_1,n_2,...n_50], number of clusters of size 1,2,...50
-    i.e. it zips with range(1, len(vec) + 1)
-    """
-    _, labeled_vtx = sp.csgraph.connected_components(adj)
-    # first bincount converts the connected components to size of each cluster
-    if keep is None:  # default behavior
-        clusters_size = np.bincount(labeled_vtx)
-    else:
-        clusters_size = np.bincount(labeled_vtx[keep])
-    # second bincount gets the cluster size distribution
-    dist_size = np.bincount(clusters_size)
-    return dist_size[1:]  # remove 0-sized cluster
-
-
-def cluster_dist_from_bonds(bonds, keep=None, n_vertex=-1):
-    """Take bond list, return cluster distribution.
-
-    Direct of the adjacency_from_bonds function
-    and cluster_dist_from_adjacency function
-    """
-    if n_vertex < 0:
-        n_vertex = max(max(bonds))
-    adj_mat = sp.lil_matrix((n_vertex, n_vertex), dtype=bool)
-    if keep is None:
-        for a, b in bonds:
-            adj_mat[a, b] = True
-            adj_mat[b, a] = True
-    else:
-        for a, b in bonds:
-            if a in keep:
-                if b in keep:
-                    adj_mat[a, b] = True
-                    adj_mat[b, a] = True
-    _, labeled_vtx = sp.csgraph.connected_components(adj_mat)
-    # first bincount converts the connected components to size of each cluster
-    if keep is None:  # default behavior
-        clusters_size = np.bincount(labeled_vtx)
-    else:
-        clusters_size = np.bincount(labeled_vtx[keep])
-    # second bincount gets the cluster size distribution
-    dist_size = np.bincount(clusters_size)
-    return dist_size[1:]  # remove 0-sized cluster
 
 
 def cluster_dist_from_vtu(vtu_location):
@@ -214,3 +146,42 @@ def cluster_dist_from_vtu(vtu_location):
     # second bincount gets the cluster size distribution
     dist_size = np.bincount(clusters_size)
     return dist_size[1:]  # remove 0-sized cluster
+
+
+def write_cluster_hist(clusters, vtu_location, v):
+    """Subfunction to get_statistics, write the histogram file for each vtu.
+
+    Takes vtu_location, the path of the vtu file, and v, the verbosity flag
+    calculates and writes an appropriate histogram file
+    If vtu_location is "/over/here/blah.vtu"
+    creates "/over/here/histogram_blah.csv"
+    Special case: of name contains "timestep". replace
+    i.e. if vtu_location is "/over/here/timestep_01.vtu"
+    creates "/over/here/histogram_01.csv"
+    """
+    # create path for the histogram
+    # replace suffix
+    hist = vtu_location.replace('.vtu', '.csv')
+    # affix histogram to the start of the name
+    # if the name contains 'timestep'
+    # e.g. it's in the 'timestep_000999.vtu' format
+    # replace the 'timestep' instead
+    base, filename = os.path.split(hist)
+    if filename.__contains__('timestep'):
+        filename = filename.replace('timestep', 'histogram')
+    else:
+        # add "histogram_" to the name
+        filename = "histogram_" + filename
+    hist = os.path.join(base, filename)
+
+    if v:
+        print('writing ', clusters[clusters != 0][:5], '... to ', hist)
+
+    # write .csv file
+    with open(hist, 'w+', newline='') as hist_file:
+        writer = csv.writer(hist_file)
+        writer.writerow(['cluster_size', 'number_of_clusters'])
+        # write only rows with nonzero clusters
+        relevant_rows = (x for x in enumerate(clusters, start=1)
+                         if x[1] != 0)
+        writer.writerows(relevant_rows)
