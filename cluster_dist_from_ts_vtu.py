@@ -49,12 +49,14 @@ def write_cluster_hist_from_vtu(vtu_location, v):
     # if the name contains 'timestep'
     # e.g. it's in the 'timestep_000999.vtu' format
     # replace the 'timestep' instead
-    if hist.__contains__('timestep'):
-        hist = hist.replace('timestep', 'histogram')
+    base, filename = os.path.split(hist)
+    if filename.__contains__('timestep'):
+        filename = filename.replace('timestep', 'histogram')
     else:
-        # more finiky: needs to add "histogram" in the middle of the path
-        broken_hist = os.path.split(hist)
-        hist = os.path.join(broken_hist[0], 'histogram_' + broken_hist[-1])
+        # add "histogram_" to the name
+        filename = "histogram_" + filename
+    hist = os.path.join(base, filename)
+
     if v:
         print('writing ', clusters[:5], '... to ', hist)
 
