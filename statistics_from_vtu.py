@@ -2,10 +2,11 @@
 # coding: utf-8
 """Get statistics on a series of vtu files.
 
-output as file
+output a statistics file, optionally write cluster size histogram
 """
 
-# imports
+# imports: should be in standard anaconda distribution, plus my own module
+# to get vesicle data from vtu
 import ts_vtu_to_python as v2p
 import os
 import concurrent.futures
@@ -14,6 +15,8 @@ import csv
 import numpy as np
 import scipy.sparse as sp
 from numba import njit
+# "upside down": main is at the bottom, major function get_statistics above
+# that, extra helper function at top"
 
 
 @njit  # supposednly, loop better on numpy than python
@@ -24,7 +27,7 @@ def numpy_sum_extend(array_to_add_to, array_extend_indices, array_to_add_from):
 
 
 def get_statistics_from_vtu(vtu_location, v, w):
-    """Get main statisticd (order parameters) from .vtu file.
+    """Get main statistics (order parameters) from a single .vtu file.
 
     Takes vtu_location, the path of the vtu file, and v, the verbosity flag
     extract the geometry and calculates volume, area, gyration eigenvalues,
@@ -60,7 +63,7 @@ def get_statistics_from_vtu(vtu_location, v, w):
 
     ##################################################
     # get gyration eigenvalues G_mn = 1/N sum(r_n r_m)
-    # which is G = (pos.T @ pos) / nvtx
+    # which is equivalent to G = (pos.T @ pos) / nvtx
     gy_eig = np.linalg.eigvalsh((pos.T @ pos) / nvtx)
     gy_eig.sort()
 
@@ -73,17 +76,17 @@ def get_statistics_from_vtu(vtu_location, v, w):
 
     ######################################################
     # mean curvature:
-    # a lot harder, since we don't have neighbors directly
-    # the components of summation are
+    # a lot harder, since we don't have the neighbors directly.
+    # the components of summation are,
     # for each vertex i:
-    # sum all l_ij * cotan(theta_opposite)/2
-    # sum normal of triangles (to determine h sign)
+    #   sum all l_ij * cotan(theta_opposite)/2 --> rh[i]
+    #   sum normal of triangles (to determine h sign) --> tnh[i]
     # this can be done on the triangle, which have well-determined neighbors
     rh = np.zeros(pos.shape)
     tnh = np.zeros(pos.shape)
 
-    # summing the normals is now easy
-    # (and we're looking for sign - no need to fuss about constants)
+    # summing the normals is easy, since we have them from volume/area,
+    # but we didn't normalize them
     norms /= double_areas[:, np.newaxis]  # normalizing vectors was skipped
     # add the normal to each vertex in the triangle:
     # vtx_normal[tri->vtx[0]] += tri->normal. then for 1 and 2
@@ -92,20 +95,28 @@ def get_statistics_from_vtu(vtu_location, v, w):
     numpy_sum_extend(tnh, tlist[:, 0], norms)
     numpy_sum_extend(tnh, tlist[:, 1], norms)
     numpy_sum_extend(tnh, tlist[:, 2], norms)
+    # we only need direction, tnh*rh<0, so no need to normalize
 
-    # Summing other part is more difficult
-    # we go on each vertex of the triangle
-    # and add the relevant vector to rh
+    # Summing the other part is more difficult
+    # we go on each vertex of the triangle k=[0,1,2]
+    # calculate cotan(theta[k])
+    # and add the relevant lij*cotan(theta[k])/2 vector to rh[i!=k]
+
+    # To get cotan, we will beed bond length square
     bond_sqr01 = np.einsum('ij,ij->i', xyz1-xyz0, xyz1-xyz0)
     bond_sqr02 = np.einsum('ij,ij->i', xyz2-xyz0, xyz2-xyz0)
     bond_sqr12 = np.einsum('ij,ij->i', xyz2-xyz1, xyz2-xyz1)
 
     # on 0th vtx of each triangle:
+    # numpy vectorized version of the c calculation
+    # cot[q] = |a||b|cos/sqrt(|a|^2|b|^2 - |a|^2|b|^2cos^2)
+    # |a||b|cos = a @ b
     dot_prod_at = np.einsum('ij,ij->i', xyz1-xyz0, xyz2-xyz0)
     cot_at = dot_prod_at / np.sqrt(bond_sqr01*bond_sqr02 - dot_prod_at**2)
-    # 2*dual bond = 2*l_ij*(cot) (sigma is actually double_sigma)
+    # dual bond
     sigma_12 = cot_at[:, np.newaxis] * (xyz2 - xyz1)
-    # contributions to 1 and 2: l_ij * cot (/2 later)
+    # contributions to 1 and 2: +-l_12 * cot(theta[0])=+-sigma12
+    # (divide by 2 later)
     numpy_sum_extend(rh, tlist[:, 1], sigma_12)
     numpy_sum_extend(rh, tlist[:, 2], -sigma_12)
 
@@ -125,7 +136,7 @@ def get_statistics_from_vtu(vtu_location, v, w):
     numpy_sum_extend(rh, tlist[:, 0], sigma_01)
     numpy_sum_extend(rh, tlist[:, 1], -sigma_01)
 
-    # h per vertex, /2 we didn't do before
+    # h per vertex, do the division by 2 we didn't do before
     h = np.sqrt(np.einsum('ij,ij->i', rh, rh))/2
     # -h if pointing the other way (mtriangle vertex order: maybe -?)
     h[np.einsum('ij,ij->i', rh, tnh) < 0] *= -1
@@ -134,25 +145,27 @@ def get_statistics_from_vtu(vtu_location, v, w):
     # few! that was not nice
 
     #############################################################
-    # perimeter: if vertex "x" in a triangle is unique, there's a
-    # domain boundary running through: |sigma_xy|+|sigma_xz|
+    # perimeter: if vertex "i" in a triangle is unique, there's a
+    # domain boundary running through: |sigma_ij|+|sigma_ik|
     perim = 0
     # for any 0th vertex that is unique, 0!=1 and 1==2
     unique_vtx = ((active[tlist[:, 0]] != active[tlist[:, 1]])
                   & (active[tlist[:, 1]] == active[tlist[:, 2]]))
+    # += |sigma_20|
     perim += np.linalg.norm(sigma_20[unique_vtx, :], axis=1).sum()
+    # += |sigma_01|
     perim += np.linalg.norm(sigma_01[unique_vtx, :], axis=1).sum()
-    # fo any 1th vertex that is unique, 1!=2 and 2==0
+    # same for any 1th vertex that is unique, 1!=2 and 2==0
     unique_vtx = ((active[tlist[:, 1]] != active[tlist[:, 2]])
                   & (active[tlist[:, 2]] == active[tlist[:, 0]]))
     perim += np.linalg.norm(sigma_01[unique_vtx, :], axis=1).sum()
     perim += np.linalg.norm(sigma_12[unique_vtx, :], axis=1).sum()
-    # for any 2th vertex that is unique, 2!=0 and 0==1
+    # same for any 2th vertex that is unique, 2!=0 and 0==1
     unique_vtx = ((active[tlist[:, 2]] != active[tlist[:, 0]])
                   & (active[tlist[:, 0]] == active[tlist[:, 1]]))
     perim += np.linalg.norm(sigma_12[unique_vtx, :], axis=1).sum()
     perim += np.linalg.norm(sigma_20[unique_vtx, :], axis=1).sum()
-    # sigmas where still 2*sigma
+    # sigmas are still 2*sigma
     perim /= 2
 
     ####################################
@@ -199,11 +212,11 @@ def main():
     -w: write a histogram for each vtu
 
     for example:
-    >$python ts_vtu_get_cluster_stat timestep_000*
+    >$python statistics_from_vtu.py timestep_000*
     Creates pystatistics.csv:
         0, volume, area, ... linelength
         1, Volume, area, ... linelength
-    >$python ts_vtu_get_cluster_stat . -o stat -w
+    >$python statistics_from_vtu.py . -o stat -w
     Creates stat.csv:
         0, volume, area, ... linelength
         1, Volume, area, ... linelength

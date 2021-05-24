@@ -39,13 +39,13 @@ def _xml_to_str_list(node):
     else:
         return all_text.split()
 
-# functions  for the outside
+# functions for the outside
 
 
 def vtu_get_geometry(vtu_location):
     """Take path '/here/file.vtu', returns vertices, bonds, and triangles.
 
-    Takes string, returns
+    Takes string, returns tuple:
     vertex positions, [[x1, y1, z1],[x2, y2, z2]...],
     bonds [[0,1],[0,5]...],
     triangles [[0,1,6],[0,2,8]...]
@@ -89,10 +89,10 @@ def vtu_get_tape(vtu_location):
 def vtu_get_vertex_data(vtu_location):
     """Take path '/here/file.vtu',returns curvature, bending energy.
 
-    Takes string, returns
+    Takes string, returns tuple:
     spontaneus curvature [0, 0, 0.5, 0, 0.5,...],
     bending energy [6.143e-03, 1.577, ...]
-    No point in taking the vertex id, which are just range(num_vertex)
+    There's no point in taking the vertex id, which are just range(num_vertex)
     other energies are not always recorded
     """
     # parse vtu as xml file
@@ -149,10 +149,11 @@ def cluster_dist_from_vtu(vtu_location):
 
 
 def write_cluster_hist(clusters, vtu_location, v):
-    """Subfunction to get_statistics, write the histogram file for each vtu.
+    """For statistics_from_vtu, write a histogram file for each vtu.
 
-    Takes vtu_location, the path of the vtu file, and v, the verbosity flag
-    calculates and writes an appropriate histogram file
+    Takes clusters, an array, vtu_location, the path of the vtu file,
+    and v, the verbosity flag
+    Writes an appropriate histogram file
     If vtu_location is "/over/here/blah.vtu"
     creates "/over/here/histogram_blah.csv"
     Special case: of name contains "timestep". replace

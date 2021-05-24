@@ -73,21 +73,24 @@ def write_cluster_hist_from_vtu(vtu_location, v):
 def main():
     """Parse command line args to find .vtu files, create cluster histogram.
 
-    See argparse description for how to use.
-    Example use:
-    >$python ts_vtu_get_cluster_stat .
+    See argparse description for how to use. Example use:
+
+    >$python cluster_dist_from_vtu .
     All .vtu in current directory get a histogram file
-    >$python ts_vtu_get_cluster_stat /vtu_cache
+
+    >$python cluster_dist_from_vtu /vtu_cache
     All .vtu files in /vtu_cache directory get a histogram file
-    >$python ts_vtu_get_cluster_stat ./my_favorite_vtu.vtu
-    Creates ./histogram_my_favorite_vtu.csv file
-    cluster_size, number_of_clusters
-    1, 2013
-    2,56
-    ...
+
+    >$python cluster_dist_from_vtu ./my_favorite_vtu.vtu
+    Creates ./histogram_my_favorite_vtu.csv file:
+        cluster_size, number_of_clusters
+        1, 2013
+        2,56
+        ...
     etc
-    >$python ts_vtu_get_cluster_stat timestep_000*
-    Creates historgam_000*.vtu files
+
+    >$python cluster_dist_from_vtu timestep_000*
+    Creates historgam_000*.csv files
     """
     # parse the arguments:
     parser = argparse.ArgumentParser(
@@ -144,6 +147,8 @@ def main():
     # now has all vtu files, now for each file:
     # Calculate cluster size distribution and
     # write a histogram_*.csv
+    # (uses the intimidately-named "multiprocessing for dummies"
+    # python module instead of a for loop)
     with concurrent.futures.ProcessPoolExecutor() as executor:
         executor.map(write_cluster_hist_from_vtu,
                      all_vtus, (v for x in all_vtus))
