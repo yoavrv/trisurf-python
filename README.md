@@ -8,9 +8,10 @@ ts_vtu_to_python.py
 >* vtu_get_geometry: takes .vtu, returns vertex positions list, bond list, and triangle list
 >* vtu_get_tape: takes .vtu, returns the tape
 >* vtu_get_vertex_data: takes .vtu, returns spontaneus curvature and bending energy (numpy arrays)
->* cluster_dist_from_vtu: takes .vtu, returns distribution of cluster size
-statistics_from_vtu.py
-*command line function* -python version of tspoststat
+>* cluster_dist_from_vtu: takes .vtu, returns distribution of cluster size  
+
+statistics_from_vtu.py  
+>*command line function* -python version of tspoststat
 > accumulate statistics of the main order parameters for .vtu files into single file
 > volume,
 > optionally writes cluster size histogram files
