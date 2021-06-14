@@ -22,16 +22,19 @@ def main():
     """
     main_loc = (r'/mnt/c/Users/yoavr/Desktop'
                 r'/paraview_pipeline/hello_chemfarm'
-                r'/FW_block_aggregated/timesteps'
+                #r'/FW_block_aggregated/timesteps'
+                #r'/HIV_gag/1_attempt_1'
+                #r'/13_from_various_stability/1_from_round'
+                r'/HIV_gag/2_attempt_2'
                 )
-    name = "std_cluster_size"
+    name = "lamdba1"
 
-    frange = range(2, 4)  # range f
-    wrange = range(5, 9)
+    frange = range(0, 8)  # range f [2,6|5,9]
+    wrange = range(0, 2)
     ifrange = range(len(frange))  # index range
     iwrange = range(len(wrange))
 
-    step_range = range(0, 150)  # step range
+    step_range = range(50, 100)
 
     dists = tuple(tuple(np.zeros(len(step_range))
                         for x in iwrange)
@@ -154,8 +157,9 @@ def plot_fxw_hists(dists, frange, wrange, step_range,
             # axe.set_xlabel('cluster size')
             # axe.set_ylabel('number of clusters')
             if do_title:
-                axe.set_title(f'f=0.{f}, w={0.5+0.25*w}: {name}')
+                axe.set_title(f'f=0.{f}, w={0.25+1.25*w}:')
             # axe.set_aspect('equal', 'box')
+            # f'f=0.{f}, w={0.5+0.25*w:'{name}
             if do_legend:
                 axe.legend(numpoints=1, handlelength=0,
                            markerscale=0, handletextpad=0)

@@ -288,7 +288,7 @@ def main():
     # sort alphabetically:
     all_vtus.sort()
 
-    stat_header = ["No", "Volume", "Area", "lamdba1", "lambda2",
+    stat_header = ["No", "Volume", "Area", "lambda1", "lambda2",
                    "lambda3", "Nbw/Nb", "hbar", "mean_cluster_size",
                    "std_cluster_size", "line_length"]
 
