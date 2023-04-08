@@ -1,0 +1,107 @@
+#!/usr/bin/env python3
+# -*- coding: utf-8 -*-
+"""
+Created on Thu Mar 16 13:54:51 2023
+
+@author: yoav
+"""
+
+import os
+from glob import glob
+
+import numpy as np
+import matplotlib.pyplot as plt
+
+import vtu
+from file import SimFrame
+PyVtu = vtu.PyVtu
+
+def comparable_helfrich_energy(v,c0):
+    """Constant to add to helfrich energy to match"""
+    k,kg = v.k, v.k2
+    h,K = v.mean_curvature, v.gaussian_curvature
+    c02 = c0*(v.c0!=0)
+    mean = k*0.5*(h-c02)**2
+    A = v.mean_energy/(0.5*k*(h-v.c0)**2)
+    A[np.isnan(A)]=0
+    gauss = kg*K
+    const = k*(k/(2*k+kg)-0.5)*c02**2
+    return (mean+gauss+const)*A
+
+def comparable_helfrich_energy2(k,kg,c0):
+    """Constant to add to helfrich energy to match"""
+    return k*(k/(2*k+kg)-0.5)*c0**2
+
+
+def extract_energy_diff(xrow):
+    ts = sorted(glob(os.path.join(xrow.path,'timestep*')))[1:]
+    es1 = np.zeros((3,2002))
+    es2 = np.zeros((3,2002))
+    for t,tpath in enumerate(ts):
+        v = PyVtu(tpath)
+        es1[t,:]=comparable_helfrich_energy(v, xrow['c'])
+        es2[t,:]=v.e
+    return es1,es2
+
+def show_sim(i):
+    fig, axes = plt.subplots(1,3)
+    axes[0].hist(es2[i,0],alpha=0.4,bins=100)
+    axes[0].hist(es1[i,0],alpha=0.4,bins=100)
+    axes[1].hist(es2[i,1],alpha=0.4,bins=100)
+    axes[1].hist(es1[i,1],alpha=0.4,bins=100)
+    axes[2].hist(es2[i,2],alpha=0.4,bins=100)
+    axes[2].hist(es1[i,2],alpha=0.4,bins=100)
+    
+def show_sim2(i):
+    fig, axes = plt.subplots(1,3)
+    axes[0].hist(abs(es1[i,0]-es2[i,0]),alpha=0.4,bins=100)
+    axes[1].hist(abs(es1[i,1]-es2[i,1]),alpha=0.4,bins=100)
+    axes[2].hist(abs(es1[i,2]-es2[i,2]),alpha=0.4,bins=100)
+
+
+# %%
+loc_sims = '/mnt/c/Users/yoavr/Desktop/paraview_pipeline/hello_chemfarm/tests/equivalent'
+simf = SimFrame(loc_sims)
+
+df = simf.df.query('m==15 and w==0 and k<-5 and d==0').copy(deep=True)
+# %%
+
+es1 = np.zeros((len(df),3,2002))
+es2 = np.zeros((len(df),3,2002))
+
+for i, (idx, row) in enumerate(df.iterrows()):
+    es1[i], es2[i] = extract_energy_diff(row)
+
+# %%
+
+plt.hist(es2[0].reshape(6006),alpha=0.6)
+plt.hist(es1[0].reshape(6006),alpha=0.6)
+
+# %%
+fig, axes = plt.subplots(3,10,sharex=True,sharey=True)
+for i,(j,row) in enumerate(df.iterrows()):
+    axes[0,i].hist(abs(es1[i,0]-es2[i,0]),alpha=0.8,bins=100,density=True,range=(0,5))
+    axes[1,i].hist(abs(es1[i,1]-es2[i,1]),alpha=0.8,bins=100,density=True,range=(0,5))
+    axes[2,i].hist(abs(es1[i,2]-es2[i,2]),alpha=0.8,bins=100,density=True,range=(0,5))
+    axes[0,i].set_title(" ".join([f'{key}:{row[key]}' for key in ['k','c','d']]))
+
+# %%
+
+df = simf.df.query('m==15 and w==0 and k<=0 and d==0').copy(deep=True)
+# %%
+
+es1 = np.zeros((len(df),3,2002))
+es2 = np.zeros((len(df),3,2002))
+
+for i, (idx, row) in enumerate(df.iterrows()):
+    es1[i], es2[i] = extract_energy_diff(row)
+
+
+# %%
+fig, axes = plt.subplots(3,10,sharex=True,sharey=True)
+for i,(j,row) in enumerate(df.iterrows()):
+    axes[0,i].hist(abs(es1[i,0]-es2[i,0]),alpha=0.8,bins=100,density=True,range=(0,5))
+    axes[1,i].hist(abs(es1[i,1]-es2[i,1]),alpha=0.8,bins=100,density=True,range=(0,5))
+    axes[2,i].hist(abs(es1[i,2]-es2[i,2]),alpha=0.8,bins=100,density=True,range=(0,5))
+    axes[0,i].set_title(" ".join([f'{key}:{row[key]}' for key in ['k','c','d']]))
+
