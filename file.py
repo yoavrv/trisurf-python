@@ -454,7 +454,7 @@ class SimFrame():
         ...
         Name: 4, dtype: object
         """
-        if query_str is None or query_str is '':
+        if query_str is None or query_str=='':
             self.subspace = self.df[:] # full view
         self.subspace = self.df.query(query_str)
         return self.subspace
