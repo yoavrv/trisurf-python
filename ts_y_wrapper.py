@@ -2,6 +2,8 @@
 # coding: utf-8
 from ctypes import *
 
+raise DeprecationWarning("Wrapper has not been updated to the new versions of trisurf")
+
 TS_SUCCESS=0
 TS_FAIL=1
 

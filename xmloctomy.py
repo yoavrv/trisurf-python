@@ -8,7 +8,7 @@ import os
 import vtu
 import tarfile
 from file import OpenVtuReadingFrame
-from small_functions import valid_simulation_dict, is_nondigit
+from small_functions import valid_simulation_dict, is_nondigit, str_to_slice
 
 
 def folder_xmloctomy(folder, keep_last=True, skip_tenth=True,
@@ -26,13 +26,12 @@ def folder_xmloctomy(folder, keep_last=True, skip_tenth=True,
         if skip_tenth:
             vtus = [vtu for i, vtu in enumerate(vtus) if i % 10 != 0]
         for vfile in vtus:
-            vtu._xmloctomy(os.path.join(folder, vfile),
-                           streamline_tape, rmfields)
+            vtu._xmloctomy(vfile, streamline_tape, rmfields)
         if tar_name is not None:
             tar_path = os.path.join(folder, tar_name)
             with tarfile.open(tar_path, tar_mode) as tarf:
                 for vfile in f:
-                    tarf.add(os.path.join(folder, vfile))
+                    tarf.add(vfile)
         # extracted files will deleted at exit
 
 
@@ -74,8 +73,8 @@ def main():
                         type=str,
                         default=None, const='')
     parser.add_argument("-t", "--tar-archive", nargs="?",
-                        help="""tar all vtus into tape.
-                        Necessary for extracting from tar""",
+                        help="""tar all vtus in a folder to a tar archive.
+                        Existing tar archive are not affected in normal operation: save to tar to record them as well.""",
                         type=str, default=None, const='timesteps.tar.gz')
     args = parser.parse_args()
 
@@ -87,9 +86,7 @@ def main():
         v, vv = False, False
     mode = args.mode
     if args.slice is not None:
-        # copied from stack overflow: split by :, place in slice constructor
-        slc = slice(*map(lambda x: int(x.strip())
-                         if x.strip() else None, args.slice.split(':')))
+        slc = str_to_slice(args.slice)
         vv and print('using', slc)
     else:
         slc = None
@@ -113,6 +110,7 @@ def main():
         directories = []
         for x in args.input:
             directories.extend(glob.glob(x))
+        directories = [os.path.realpath(x) for x in directories]
 
     # get directories
     directories.sort()

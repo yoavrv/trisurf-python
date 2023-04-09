@@ -43,7 +43,7 @@ _new_interesting_fields = ['gaussian_curvature', 'gaussian_energy',
 _new_vtu_fields = ['type', 'direct_force', 'adhesion_strength',
                    'force', 'normal', 'curvature']
 
-_default_fields = ["type","c0", "f0", "w","indices"] # default fields to loads (besides structural position, blist, tlist)
+_default_fields = ["type","c0", "force", "w", "e"] # default fields to loads (besides structural position, blist, tlist)
 
 _known_shorthands = {"Koordinates_tock": "pos", "connectivity": ("blist","tlist"),
                      "bond_list": "blist", "triganle_list": "tlist",
@@ -66,7 +66,7 @@ vtx_type = {
             "ghost":    -128 # ghost vertex can only be moved artificially
 }
 
-def xml_to_np(node, dtype=np.dtype(float)):
+def xml_to_np(node, dtype=np.float64):
     r"""Take xml node, extract text array to numpy array of dtype.
 
     Convert sequence to 1d array and lines to 2d arrays, e.g
@@ -77,7 +77,7 @@ def xml_to_np(node, dtype=np.dtype(float)):
 
 
 _xml_to_2_np_pat = re.compile("\s*((?:\d+ \d+\n)*)((?:\d+ \d+ \d+\n)*)\s*")
-def xml_to_2_np(node, dtype=np.dtype(int)):
+def xml_to_2_np(node, dtype=np.int64):
     r"""Take xml node, extract text array to two numpy arrays.
 
     The regex pattern split the text to nx2 and mx3 arrays
@@ -130,7 +130,7 @@ def np_2_to_xml(node, blist, tlist):
     post = _postfix_pat.findall(node.text)[0]
 
     # choose number format based on array type
-    if blist.dtype == np.float64 and tlist.dtype == np.float64:
+    if blist.dtype == np.float64 or tlist.dtype == np.float64:
         def fmt(x): return f"{x:.17e}"
     else:
         def fmt(x): return f"{x}"
@@ -212,7 +212,7 @@ class PyVtu:
         and the bond list and triangle list, which are derived from Cell/DataArray "connectivity"
         """
         self.nodes["pos"] = self.tree.find("UnstructuredGrid/Piece/Points/DataArray")
-        self.pos = xml_to_np(self.nodes["pos"])
+        self.pos = xml_to_np(self.nodes["pos"],dtype=np.int64)
         self._arrays["pos"] = self.pos
         self.nodes["connectivity"] = self.tree.find("UnstructuredGrid/Piece/Cells/DataArray")
         self.blist, self.tlist = xml_to_2_np(self.nodes["connectivity"])
@@ -239,13 +239,14 @@ class PyVtu:
         for node in all_array_nodes:
             if node not in self.nodes.values():
                 name = node.attrib['Name'].replace(" ", "_")
+                dtype=np.dtype(node.attrib['type'].lower())
                 if use_known_shorthand:
                     name = self.known_shorthands.get(name, name)
                 if not load_all:
                     if name not in self.default_fields:
                         continue
                 self.nodes[name] = node
-                self._arrays[name] = xml_to_np(self.nodes[name])
+                self._arrays[name] = xml_to_np(self.nodes[name], dtype)
                 self.__dict__[name] = self._arrays[name]
 
     def _find_node(self, node_name) -> ET.Element:

@@ -219,10 +219,10 @@ class OpenVtuReadingFrame():
         self.folder = folder
         self.is_open = None
         self.is_valid_tar = validate_tar_func if validate_tar_func else lambda x: True
-        self.is_valid_vtu = validate_vtu_func if validate_vtu_func else lambda x: True
+        is_valid_vtu = validate_vtu_func if validate_vtu_func else lambda x: True
         if validate_vtu_ext:
             self.is_valid_vtu = lambda x: (os.path.splitext(x)[-1] == '.vtu'
-                                           and validate_vtu_func(x))
+                                           and is_valid_vtu(x))
 
 
     def __enter__(self):
@@ -264,7 +264,10 @@ class OpenVtuReadingFrame():
 
     def __iter__(self):
         """Iterate over vtu files."""
-        return iter(self.all_vtus)
+        if self.is_open:
+            return iter(self.all_vtus)
+        else:
+            raise ValueError(f"Reading frame {self} is not open")
 
     def __exit__(self, *exc):
         """Exit function: delete extracted files."""
