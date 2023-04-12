@@ -212,7 +212,7 @@ class PyVtu:
         and the bond list and triangle list, which are derived from Cell/DataArray "connectivity"
         """
         self.nodes["pos"] = self.tree.find("UnstructuredGrid/Piece/Points/DataArray")
-        self.pos = xml_to_np(self.nodes["pos"],dtype=np.int64)
+        self.pos = xml_to_np(self.nodes["pos"],dtype=np.float64)
         self._arrays["pos"] = self.pos
         self.nodes["connectivity"] = self.tree.find("UnstructuredGrid/Piece/Cells/DataArray")
         self.blist, self.tlist = xml_to_2_np(self.nodes["connectivity"])
