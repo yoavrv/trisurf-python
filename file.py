@@ -33,7 +33,7 @@ import pandas as pd
 from small_functions import valid_simulation_dict
 
 
-def is_tarfile_skip(x):
+def is_tarfile_and_not_directory(x):
     """Wrap tarfile.is_tarfile but without breaking error."""
     try:
         return tarfile.is_tarfile(x)
@@ -237,21 +237,21 @@ class OpenVtuReadingFrame():
         self.original_files = [x for x in pathlist
                                if self.is_valid_vtu(x)]
         self.tar_archives = [x for x in pathlist
-                             if is_tarfile_skip(x)
+                             if is_tarfile_and_not_directory(x)
                              and self.is_valid_tar(x)]
         # untar files
         for archive in self.tar_archives:
-            arc = tarfile.TarFile(archive)
-            vtu_members = [x for x in arc.getmembers()
-                           if self.is_valid_vtu(x.name)
-                           and x.name
-                           not in rawlist
-                           and os.path.join(self.folder, x.name)
-                           not in self.extracted_files
-                           ]
-            self.extracted_files.extend(os.path.join(self.folder, x.name)
-                                        for x in vtu_members)
-            arc.extractall(path=self.folder, members=vtu_members)
+            with tarfile.open(archive,'r') as arc:
+                vtu_members = [x for x in arc.getmembers()
+                                if self.is_valid_vtu(x.name)
+                                and x.name
+                                not in rawlist
+                                and os.path.join(self.folder, x.name)
+                                not in self.extracted_files
+                                ]
+                self.extracted_files.extend(os.path.join(self.folder, x.name)
+                                            for x in vtu_members)
+                arc.extractall(path=self.folder, members=vtu_members)
 
         # get all vtus we extracted
         self.all_vtus.extend(self.original_files)

@@ -13,7 +13,7 @@ from small_functions import valid_simulation_dict, is_nondigit, str_to_slice
 
 def folder_xmloctomy(folder, keep_last=True, skip_tenth=True,
                      streamline_tape=True, rmfields=None, tar_name=None,
-                     tar_mode='w:gz'):
+                     tar_mode='w:gz', verbose=False):
     """Remove unnessecary xml tags from most vtus in this folder.
 
     default: keep last vtu (so it can be continoued), skips every tenth,
@@ -25,13 +25,15 @@ def folder_xmloctomy(folder, keep_last=True, skip_tenth=True,
             vtus.pop()
         if skip_tenth:
             vtus = [vtu for i, vtu in enumerate(vtus) if i % 10 != 0]
+        if verbose:
+            print(f"in {folder}, xmloctomy on {vtus}")
         for vfile in vtus:
             vtu._xmloctomy(vfile, streamline_tape, rmfields)
         if tar_name is not None:
             tar_path = os.path.join(folder, tar_name)
             with tarfile.open(tar_path, tar_mode) as tarf:
                 for vfile in f:
-                    tarf.add(vfile)
+                    tarf.add(os.path.split(vfile)[1])
         # extracted files will deleted at exit
 
 
@@ -122,7 +124,8 @@ def main():
     for folder in directories:
         v and print(folder)
         folder_xmloctomy(os.path.realpath(folder), True, args.all,
-                         args.keep_tape, rmfields, args.tar_archive)
+                         args.keep_tape, rmfields, args.tar_archive,
+                         verbose=v)
 
 
 if __name__ == "__main__":
