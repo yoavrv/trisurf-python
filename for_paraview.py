@@ -189,7 +189,7 @@ def text_test(views, texts):
     return texts_tester
 
 
-def make_loSho_i(views, sims, slc, names, texts):
+def make_load_show_i(views, sims, slc, names, texts):
     if len(views)==1:
         getview = lambda i: views
     else:
@@ -201,9 +201,9 @@ def make_loSho_i(views, sims, slc, names, texts):
         def get_timesteps(i):    
             path, time = sims.subspace.iloc[i][['path','timesteps']]
             return [os.path.join(path,f'timestep_{t:06}.vtu') for t in range(time)[slc]]
-    def loadShow_i(i):
+    def load_show_i(i):
         return loadShow(view=getview(i), files=get_timesteps(i), name=names[i], text=texts[i])
-    return loadShow_i
+    return load_show_i
 
 
 def view_simframe_slice(simframe, i, view=None, slc=None, text=None):

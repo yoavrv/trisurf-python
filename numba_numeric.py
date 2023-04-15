@@ -16,7 +16,6 @@ Created on Thu Aug 12 14:26:31 2021
 @author: yoav
 """
 
-from functools import wraps
 import numpy as np
 
 try:
@@ -461,15 +460,6 @@ def nematic_order(vtype, blist, director, is_anisotropic_vtx=8):
             n[j]+=1
     n[n==0]=1 # prevent division by 0
     return nematic_order/n
-
-
-# for i in range(len(S2)):
-#     if v.type[i]&8:
-#         neis = v.get_neighbors(i)
-#         vnei = neis[(v.type[neis]&8) == 8]
-#         if len(vnei):
-#             print('here',i,vnei)
-#             S2[i] = (0.5*( 3* (v.director[vnei]@v.director[i])**2 - 1)).mean()
 
 
 

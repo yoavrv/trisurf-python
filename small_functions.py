@@ -56,7 +56,7 @@ def valid_simulation_dict(path) -> dict:
     return params
 
 
-def compiler_tape_regex_option(option_list):
+def compile_tape_regex_option(option_list):
     """Return a regex pattern that can extract the option in option_list from a tape file using pattern.findall(tape)"""
     if option_list is None or option_list is all:
         return re.compile("^([\w\d]*)=(.*)",re.MULTILINE)
@@ -75,13 +75,18 @@ def _string_to_value(value):
         except ValueError:
             return value
 
-_pattern_tape_all=compiler_tape_regex_option(None)
+_pattern_tape_all=compile_tape_regex_option(None)
 def extract_tape_options(tape):
+    """Extract tape as text to a dictionary of all options"""
     options = _pattern_tape_all.findall(tape)
     return {option: _string_to_value(value) for option,value in options}
 
-_pattern_tape_adhesion=compiler_tape_regex_option(['z_adhesion','adhesion_cuttoff'])
+_pattern_tape_adhesion=compile_tape_regex_option(['z_adhesion','adhesion_cuttoff'])
 def extract_tape_adhesion_plane(tape):
+    """Get the top of the adhesion plane from tape (z0+cutoff).
+    
+    This means vertex position below this value are in adhesion.
+    """
     z_adh, z_cutoff = _pattern_tape_adhesion.findall(tape)
     return float(z_adh[1])+float(z_cutoff[1])
 

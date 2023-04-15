@@ -79,12 +79,11 @@ for view in views:
     view.OrientationAxesVisibility=0
     Render(view)
 
-slc_losho = SLC[:]
-# slc_losho = SLC[:]
-loSho_i = fp.make_loSho_i(views, frame, slc_losho, names, param_texts)
+time_slc = SLC[:]
+load_show_i = fp.make_load_how_i(views, frame, stime_slc, names, param_texts)
 
 for i,_ in enumerate(views):  # views[1:],1):
-    loSho_i(i)
+    load_show_i(i)
 
 grid.snap_animation()
 
