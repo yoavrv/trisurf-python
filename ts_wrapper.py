@@ -15,7 +15,7 @@ import os
 # raise DeprecationWarning("Wrapper has not been updated to the new versions of trisurf")
 path_to_trisurf_library =  '/opt/workspace/msc_project/cluster-trisurf/src/.libs/libtrisurf.so'
 
-if not os.is_file(path_to_trisurf_library):
+if not os.path.isfile(path_to_trisurf_library):
 	print("Library not found in {path_to_trisurf_library=}. Please update the wrapper with the right location!")
 
 #########################################
