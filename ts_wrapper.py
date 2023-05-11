@@ -16,7 +16,7 @@ import os
 path_to_trisurf_library =  '/opt/workspace/msc_project/cluster-trisurf/src/.libs/libtrisurf.so'
 
 if not os.path.isfile(path_to_trisurf_library):
-	print("Library not found in {path_to_trisurf_library=}. Please update the wrapper with the right location!")
+    print("Library not found in {path_to_trisurf_library=}. Please update the wrapper with the right location!")
 
 #########################################
 # 1: constants, type aliases, and enums #
@@ -94,258 +94,273 @@ model_cylindrical_potential=3
 ###################################
 # 2: structures of the simulation #
 ###################################
+class ts_args(Structure):
+    _fields_=[
+        ("force_from_tape",c_int),
+        ("reset_iteration_count",c_int),
+        ("path",c_char*1024),
+        ("output_fullfilename",c_char*1024),
+        ("dump_fullfilename",c_char*1024),
+        ("tape_fullfilename",c_char*1024),
+        ("tape_templatefull",c_char*1024),
+        ("tape_opts",c_char*1024),
+        ("dump_from_vtk",c_char*1024),
+        ]
 
 class ts_coord(Structure):
-	_fields_=[
-		("e1", c_double),
-		("e2", c_double),
-		("e3", c_double),
-		("coord_type", c_uint)
-		]
-	
+    _fields_=[
+        ("e1", c_double),
+        ("e2", c_double),
+        ("e3", c_double),
+        ("coord_type", c_uint)
+        ]
+    
 # need to be defined before the fields??
 class ts_vertex(Structure):
-	pass
+    pass
 class ts_bond(Structure):
-	pass
+    pass
 class ts_triangle(Structure):
-	pass
+    pass
 class ts_cell(Structure):
-	pass
+    pass
 class ts_poly(Structure):
-	pass
+    pass
 class ts_cluster(Structure):
-	pass
+    pass
 
 ts_vertex._fields_=[
-	("x",c_double),
-	("y",c_double),
-	("z",c_double),
-	("mean_curvature",c_double),
-	("gaussian_curvature",c_double),
-	("mean_energy",c_double),
-	("gaussian_energy",c_double),
-	("energy",c_double),
-	("xx",c_double),
-	("xx2",c_double),
-	("w",c_double),
-	("c",c_double),
-	("nx",c_double),
-	("ny",c_double),
-	("nz",c_double),
-	("nx2",c_double),
-	("ny2",c_double),
-	("nz2",c_double),
-	("f",c_double),
-	("fx",c_double),
-	("fy",c_double),
-	("fz",c_double),
-	("ad_w",c_double),
-	("d",c_double),
-	("dx",c_double),
-	("dy",c_double),
-	("dz",c_double),
-	("eig0",c_double*3),
-	("eig1",c_double*3),
-	("eig2",c_double*3),
-	("new_c1",c_double),
-	("new_c2",c_double),
-	("eig_v0",c_double),
-	("eig_v1",c_double),
-	("eig_v2",c_double),
-	("mean_curvature2",c_double),
-	("gaussian_curvature2",c_double),
-	("mean_energy2",c_double),
-	("gaussian_energy2",c_double),
-	("neigh", POINTER(POINTER(ts_vertex))),
-	("tristar",POINTER(POINTER(ts_triangle))),
-	("bond",POINTER(POINTER(ts_bond))),
-	("cell",POINTER(POINTER(ts_cell))),
-	("grafted_poly",POINTER(POINTER(ts_poly))),
-	('cluster',POINTER(ts_cluster)),
-	("idx",ts_idx),
-	("id",ts_idx),
-	("neigh_no",ts_small_idx),
-	("tristar_no",ts_small_idx),
-	("bond_no",ts_small_idx),
-	("type",ts_flag)
+    ("x",c_double),
+    ("y",c_double),
+    ("z",c_double),
+    ("mean_curvature",c_double),
+    ("gaussian_curvature",c_double),
+    ("mean_energy",c_double),
+    ("gaussian_energy",c_double),
+    ("energy",c_double),
+    ("xx",c_double),
+    ("xx2",c_double),
+    ("w",c_double),
+    ("c",c_double),
+    ("nx",c_double),
+    ("ny",c_double),
+    ("nz",c_double),
+    ("nx2",c_double),
+    ("ny2",c_double),
+    ("nz2",c_double),
+    ("f",c_double),
+    ("fx",c_double),
+    ("fy",c_double),
+    ("fz",c_double),
+    ("ad_w",c_double),
+    ("d",c_double),
+    ("dx",c_double),
+    ("dy",c_double),
+    ("dz",c_double),
+    ("eig0",c_double*3),
+    ("eig1",c_double*3),
+    ("eig2",c_double*3),
+    ("eig_v0",c_double),
+    ("eig_v1",c_double),
+    ("eig_v2",c_double),
+    ("mean_curvature2",c_double),
+    ("gaussian_curvature2",c_double),
+    ("mean_energy2",c_double),
+    ("gaussian_energy2",c_double),
+    ("neigh", POINTER(POINTER(ts_vertex))),
+    ("tristar",POINTER(POINTER(ts_triangle))),
+    ("bond",POINTER(POINTER(ts_bond))),
+    ("cell",POINTER(POINTER(ts_cell))),
+    ("grafted_poly",POINTER(POINTER(ts_poly))),
+    ('cluster',POINTER(ts_cluster)),
+    ("idx",ts_idx),
+    ("id",ts_idx),
+    ("neigh_no",ts_small_idx),
+    ("tristar_no",ts_small_idx),
+    ("bond_no",ts_small_idx),
+    ("type",ts_flag)
 ]
 
 class ts_vertex_list(Structure):
-	_fields_=[('vtx',POINTER(POINTER(ts_vertex))),('n',ts_idx),]
+    _fields_=[('vtx',POINTER(POINTER(ts_vertex))),('n',ts_idx),]
 
 ts_bond._fields_=[
-		('bond_length',c_double),
-		('energy',c_double),
-		('x',c_double),
-		('y',c_double),
-		('z',c_double),
-		('vtx1', POINTER(ts_vertex)),
-		('vtx2', POINTER(ts_vertex)),
-		('idx',ts_idx),
-	]
+        ('bond_length',c_double),
+        ('energy',c_double),
+        ('x',c_double),
+        ('y',c_double),
+        ('z',c_double),
+        ('vtx1', POINTER(ts_vertex)),
+        ('vtx2', POINTER(ts_vertex)),
+        ('idx',ts_idx),
+    ]
 class ts_bond_list(Structure):
-	_fields_=[('bond',POINTER(POINTER(ts_bond))),('n', ts_idx),]
+    _fields_=[('bond',POINTER(POINTER(ts_bond))),('n', ts_idx),]
 
 ts_triangle._fields_=[
-		('xnorm', c_double),
-		('ynorm', c_double),
-		('znorm', c_double),
-		('xcirc', c_double),
-		('ycirc', c_double),
-		('zcirc', c_double),
-		('area', c_double),
-		('volume', c_double),
-		('energy', c_double),
-		('vertex', POINTER(ts_vertex)*3),
-		('neigh', POINTER(POINTER(ts_triangle))),
-		('idx',ts_idx),
-		('neigh_no',ts_small_idx),
-	]
+        ('xnorm', c_double),
+        ('ynorm', c_double),
+        ('znorm', c_double),
+        ('xcirc', c_double),
+        ('ycirc', c_double),
+        ('zcirc', c_double),
+        ('area', c_double),
+        ('volume', c_double),
+        ('energy', c_double),
+        ('vertex', POINTER(ts_vertex)*3),
+        ('neigh', POINTER(POINTER(ts_triangle))),
+        ('idx',ts_idx),
+        ('neigh_no',ts_small_idx),
+    ]
 
 class ts_triangle_list(Structure):
-	_fields_=[('a0',c_double),('tria', POINTER(POINTER(ts_triangle))),('n',ts_idx),]
+    _fields_=[('a0',c_double),('tria', POINTER(POINTER(ts_triangle))),('n',ts_idx),]
 
 
 ts_cell._fields_=[
-	('vertex', POINTER(POINTER(ts_vertex))),
-	('idx', ts_cell_idx),
-	('nvertex', ts_small_idx),
-	]		
+    ('vertex', POINTER(POINTER(ts_vertex))),
+    ('idx', ts_cell_idx),
+    ('nvertex', ts_small_idx),
+    ]        
 
 class ts_cell_list(Structure):
-	_fields_=[
-		("dcell",c_double),
-		('shift', c_double*3),
-		('dmin_interspecies', c_double),
-		('cell',POINTER(POINTER(ts_cell))),
-		('ncmax', ts_cell_idx*3),
-		('cellno', ts_cell_idx),
-		('max_occupancy', ts_small_idx),
-	]
+    _fields_=[
+        ("dcell",c_double),
+        ('shift', c_double*3),
+        ('dmin_interspecies', c_double),
+        ('cell',POINTER(POINTER(ts_cell))),
+        ('ncmax', ts_cell_idx*3),
+        ('cellno', ts_cell_idx),
+        ('max_occupancy', ts_small_idx),
+    ]
 
 class ts_spharm(Structure):
-	_fields_=[
-		("vtx_relR", POINTER(c_double)),
-		("vtx_solAngle", POINTER(c_double)),
-		('ulm', POINTER(POINTER(c_double))),
-		('co',POINTER(POINTER(c_double))),
-		('Ylmi', POINTER(POINTER(POINTER(c_double)))),
-		('sumUlm2', POINTER(POINTER(c_double))),
-		('ulmComplex', POINTER(POINTER(c_double))), # temporary solution (?) 
-		('n_vtx',ts_idx),
-		('l',c_uint),
-		('N', c_uint),
-		]
+    _fields_=[
+        ("vtx_relR", POINTER(c_double)),
+        ("vtx_solAngle", POINTER(c_double)),
+        ('ulm', POINTER(POINTER(c_double))),
+        ('co',POINTER(POINTER(c_double))),
+        ('Ylmi', POINTER(POINTER(POINTER(c_double)))),
+        ('sumUlm2', POINTER(POINTER(c_double))),
+        ('ulmComplex', POINTER(POINTER(c_double))), # temporary solution (?) 
+        ('n_vtx',ts_idx),
+        ('l',c_uint),
+        ('N', c_uint),
+        ]
 
 ts_poly._fields_=[
-		('k', c_double),
-		('vlist', POINTER(ts_vertex_list)),
-		('blist', POINTER(ts_bond_list)),
-		('grafted_vtx',POINTER(ts_vertex)),
-	]
+        ('k', c_double),
+        ('vlist', POINTER(ts_vertex_list)),
+        ('blist', POINTER(ts_bond_list)),
+        ('grafted_vtx',POINTER(ts_vertex)),
+    ]
 
 class ts_poly_list(Structure):
-	_fields_=[('poly',POINTER(POINTER(ts_poly))),('n',ts_idx),]
+    _fields_=[('poly',POINTER(POINTER(ts_poly))),('n',ts_idx),]
 
 class ts_confinment_plane(Structure):
-	_field_=[("z_max",c_double),("z_min",c_double),("force_switch",ts_bool)]
+    _field_=[("z_max",c_double),("z_min",c_double),("force_switch",ts_bool)]
 
 class ts_tape(Structure):
-	_fields_=[
-		("R_nucleus",c_double),
-		("R_nucleusX",c_double),
-		("R_nucleusY",c_double),
-		("R_nucleusZ",c_double),
-		("kxA0",c_double),
-		("kxV0",c_double),
-		("V0",c_double),
-		("A0",c_double),
-		("Vfraction",c_double),
-		("constvolprecision",c_double),
-		("xk0",c_double),
-		("xk2",c_double),
-		("dmax",c_double),
-		("dmin_interspecies",c_double),
-		("stepsize",c_double),
-		("kspring",c_double),
-		("xi",c_double),
-		("pressure",c_double),
-		("c0",c_double),
-		("w",c_double),
-		("F",c_double),
-		("plane_d",c_double),
-		("plane_F",c_double),
-		("vicsek_strength",c_double),
-		("vicsek_strength",c_double),
-		("z_adhesion",c_double),
-		("adhesion_radius",c_double),
-		("min_dihedral_angle_cosine",c_double),
-		("d0",c_double),
-		("mcsweeps",ts_massive_idx),
-		("random_seed",c_ulong),
-		("iterations",ts_idx),
-		("inititer",ts_idx),
-		("number_of_vertices_with_c0",ts_idx),
-		("nshell",c_uint),
-		("ncxmax",c_uint),
-		("ncymax",c_uint),
-		("nczmax",c_uint),
-		("npoly",ts_idx),
-		("nmono",ts_idx),
-		("internal_poly",ts_idx),
-		("nfil",ts_idx),
-		("nfono",ts_idx),
-		("shc",c_uint),
-		("pressure_switch",ts_bool),
-		("volume_switch",ts_bool),
-		("area_switch",ts_bool),
-		("quiet",ts_bool),
-		("plane_confinment_switch",ts_bool),
-		("allow_center_mass_movement",ts_bool),
-		("force_balance_along_z_axis",ts_bool),
-		("adhesion_geometry",ts_flag),
-		("adhesion_model",ts_flag),
-		("type_of_bond_model",ts_flag),
-		("type_of_curvature_model",ts_flag),
-		("type_of_force_model",ts_flag),
-	]
+    _fields_=[
+        ("tape_text",POINTER(c_char)),
+        ("R_nucleus",c_double),
+        ("R_nucleusX",c_double),
+        ("R_nucleusY",c_double),
+        ("R_nucleusZ",c_double),
+        ("kxA0",c_double),
+        ("kxV0",c_double),
+        ("V0",c_double),
+        ("A0",c_double),
+        ("Vfraction",c_double),
+        ("constvolprecision",c_double),
+        ("xk0",c_double),
+        ("xk2",c_double),
+        ("dmax",c_double),
+        ("dmin_interspecies",c_double),
+        ("stepsize",c_double),
+        ("kspring",c_double),
+        ("xi",c_double),
+        ("pressure",c_double),
+        ("c0",c_double),
+        ("d0",c_double),
+        ("w",c_double),
+        ("F",c_double),
+        ("plane_d",c_double),
+        ("plane_F",c_double),
+        ("vicsek_strength",c_double),
+        ("vicsek_radius",c_double),
+        ("adhesion_z",c_double),
+        ("adhesion_cutoff",c_double),
+        ("adhesion_strength",c_double),
+        ("adhesion_radius",c_double),
+        ("adhesion_scale",c_double),
+        ("adhesion_factor",c_double),
+        ("min_dihedral_angle_cosine",c_double),
+        ("mcsweeps",ts_massive_idx),
+        ("random_seed",c_ulong),
+        ("iterations",ts_idx),
+        ("inititer",ts_idx),
+        ("nshell",c_uint),
+        ("ncxmax",c_uint),
+        ("ncymax",c_uint),
+        ("nczmax",c_uint),
+        ("number_of_vertices_with_c0",ts_idx),
+        ("npoly",ts_idx),
+        ("nmono",ts_idx),
+        ("internal_poly",ts_idx),
+        ("nfil",ts_idx),
+        ("nfono",ts_idx),
+        ("shc",c_uint),
+        ("pressure_switch",ts_bool),
+        ("volume_switch",ts_bool),
+        ("area_switch",ts_bool),
+        ("quiet",ts_bool),
+        ("plane_confinment_switch",ts_bool),
+        ("allow_center_mass_movement",ts_bool),
+        ("force_balance_along_z_axis",ts_bool),
+        ("adhesion_geometry",ts_flag),
+        ("adhesion_model",ts_flag),
+        ("bond_model",ts_flag),
+        ("curvature_model",ts_flag),
+        ("force_model",ts_flag),
+    ]
 
-		
+
 
 class ts_vesicle(Structure):
-	_fields_=[
-		('dmax',c_double),
-		('stepsize',c_double),
-		('cm', c_double*3),
-		("fx",c_double),
-		("fy",c_double),
-		("fz",c_double),
-		('volume', c_double),
-		('area', c_double),
-		('spring_constant', c_double),
-		('pressure', c_double),
-		('R_nucleus', c_double),
-		('R_nucleusX', c_double),
-		('R_nucleusY', c_double),
-		('R_nucleusZ', c_double),
-		('nucleus_center', c_double *3 ),
-		('tape', POINTER(ts_tape)),	
-		('sphHarmonics',POINTER(ts_spharm)),
-		('poly_list', POINTER(ts_poly_list)),
-		('filament_list', POINTER(ts_poly_list)),
-		('vlist', POINTER(ts_vertex_list)),
-		('blist', POINTER(ts_bond_list)),
-		('tlist', POINTER(ts_triangle_list)),
-		('clist', POINTER(ts_cell_list)),
-		("confinement_plane",ts_confinment_plane),
-		('nshell', c_int),
-	]
+    _fields_=[
+        ('dmax',c_double),
+        ('stepsize',c_double),
+        ('cm', c_double*3),
+        ("fx",c_double),
+        ("fy",c_double),
+        ("fz",c_double),
+        ('volume', c_double),
+        ('area', c_double),
+        ('spring_constant', c_double),
+        ('pressure', c_double),
+        ('R_nucleus', c_double),
+        ('R_nucleusX', c_double),
+        ('R_nucleusY', c_double),
+        ('R_nucleusZ', c_double),
+        ('nucleus_center', c_double *3 ),
+        ('tape', POINTER(ts_tape)),    
+        ('sphHarmonics',POINTER(ts_spharm)),
+        ('poly_list', POINTER(ts_poly_list)),
+        ('filament_list', POINTER(ts_poly_list)),
+        ('vlist', POINTER(ts_vertex_list)),
+        ('blist', POINTER(ts_bond_list)),
+        ('tlist', POINTER(ts_triangle_list)),
+        ('clist', POINTER(ts_cell_list)),
+        ("confinement_plane",ts_confinment_plane),
+        ('nshell', c_int),
+    ]
 
 ts_cluster._fields_=[('vtx', POINTER(POINTER(ts_vertex))),('nvtx',ts_idx),('idx',ts_idx)]
 
 class ts_cluster_list(Structure):
-	_fields_=[('cluster',POINTER(POINTER(ts_cluster))),('n',ts_idx),]
+    _fields_=[('cluster',POINTER(POINTER(ts_cluster))),('n',ts_idx),]
 
 
 
@@ -355,6 +370,13 @@ class ts_cluster_list(Structure):
 
 ts=CDLL(path_to_trisurf_library)
 
+# globals
+global_command_line_args = POINTER(ts_args).in_dll(ts,"command_line_args")
+global_quiet = ts_bool.in_dll(ts,"quiet")
+global_V0 = ts_bool.in_dll(ts,"V0")
+global_A0 = ts_bool.in_dll(ts,"A0")
+global_epsvol = ts_bool.in_dll(ts,"epsvol")
+global_epsarea = ts_bool.in_dll(ts,"epsarea")
 
 ########################
 # 4: function wrappers #
@@ -362,164 +384,166 @@ ts=CDLL(path_to_trisurf_library)
 
 
 def create_vesicle_from_tape(tape):
-	"""Using pointer for tape, it creates a vesicle, returning pointer to it."""
-	ts.create_vesicle_from_tape.argtypes=POINTER(ts_tape)
-	ts.create_vesicle_from_tape.restype=POINTER(ts_vesicle)
-	return ts.create_vesicle_from_tape(tape)
+    """Using pointer for tape, it creates a vesicle, returning pointer to it."""
+    ts.create_vesicle_from_tape.argtypes=POINTER(ts_tape)
+    ts.create_vesicle_from_tape.restype=POINTER(ts_vesicle)
+    return ts.create_vesicle_from_tape(tape)
 
 def parsetape(filename='tape'):
-	"""Loads tape with  filename (if not given it defaults to 'tape'). It returns a pointer to structure for tape"""
-	ts.parsetape.restype=POINTER(ts_tape)
-	ts.parsetape.argtypes=[c_char_p]
-	return ts.parsetape(filename.encode('ascii'))
+    """Loads tape with  filename (if not given it defaults to 'tape'). It returns a pointer to structure for tape"""
+    ts.parsetape.restype=POINTER(ts_tape)
+    ts.parsetape.argtypes=[c_char_p]
+    return ts.parsetape(filename.encode('ascii'))
 
 def parseDump(filename):
-	"""Loads a vtu file with 'filename' and creates a vesicle returning pointer to it"""
-	ts.parseDump.argtypes=[c_char_p]
-	ts.parseDump.restype=POINTER(ts_vesicle)
-	vesicle=ts.parseDump(filename.encode('ascii'))
-	return vesicle
+    """Loads a vtu file with 'filename' and creates a vesicle returning pointer to it"""
+    ts.parseDump.argtypes=[c_char_p]
+    ts.parseDump.restype=POINTER(ts_vesicle)
+    vesicle=ts.parseDump(filename.encode('ascii'))
+    return vesicle
 
 def single_timestep(vesicle):
-	"""Makes a single timestep in simulations. Returns a tuple of vmsrt and bfrt (vertex move success rate and bond flip success rate)"""
-	ts.single_timestep.argtypes=[POINTER(ts_vesicle),POINTER(c_double),POINTER(c_double)]
-	vmsrt=c_double(0.0)
-	bfsrt=c_double(0.0)
-	ts.single_timestep(vesicle,byref(vmsrt),byref(bfsrt))
-	return (vmsrt.value, bfsrt.value)
+    """Makes a single timestep in simulations. Returns a tuple of vmsrt and bfrt (vertex move success rate and bond flip success rate)"""
+    ts.single_timestep.argtypes=[POINTER(ts_vesicle),POINTER(c_double),POINTER(c_double)]
+    vmsrt=c_double(0.0)
+    bfsrt=c_double(0.0)
+    ts.single_timestep(vesicle,byref(vmsrt),byref(bfsrt))
+    return (vmsrt.value, bfsrt.value)
 
 def write_vertex_xml_file(vesicle,timestep_no=0):
-	"""Writes a vesicle into file with filename 'timestep_XXXXXX.vtu', where XXXXXX is a leading zeroed number given with timestep_no parameter (defaults to 0 if not given"""
-	ts.write_vertex_xml_file.argtypess=[POINTER(ts_vesicle),ts_idx,POINTER(ts_cluster_list)]
-	ts.write_vertex_xml_file(vesicle,ts_idx(timestep_no),POINTER(ts_cluster_list)())
+    """Writes a vesicle into file with filename 'timestep_XXXXXX.vtu', where XXXXXX is a leading zeroed number given with timestep_no parameter (defaults to 0 if not given"""
+    ts.write_vertex_xml_file.argtypess=[POINTER(ts_vesicle),ts_idx,POINTER(ts_cluster_list)]
+    ts.write_vertex_xml_file(vesicle,ts_idx(timestep_no),POINTER(ts_cluster_list)())
 
 
 def vesicle_free(vesicle):
-	"""Free memory of the whole vesicle"""
-	ts.vesicle_free.argtypes=[POINTER(ts_vesicle)]
-	ts.vesicle_free(vesicle)
+    """Free memory of the whole vesicle.
+    
+    Tape is freed seperately"""
+    ts.vesicle_free.argtypes=[POINTER(ts_vesicle)]
+    ts.vesicle_free(vesicle)
 
 def vesicle_volume(vesicle):
-	ts.vesicle_volume.argtypes=[POINTER(ts_vesicle)]
-	ts.vesicle_volume(vesicle)
+    ts.vesicle_volume.argtypes=[POINTER(ts_vesicle)]
+    ts.vesicle_volume(vesicle)
 
 def vesicle_area(vesicle):
-	ts.vesicle_area.argtypes=[POINTER(ts_vesicle)]
-	ts.vesicle_area(vesicle)
+    ts.vesicle_area.argtypes=[POINTER(ts_vesicle)]
+    ts.vesicle_area(vesicle)
 
 def gyration_eigen(vesicle):
-	ts.gyration_eigen.argtypes=[POINTER(ts_vesicle), POINTER(c_double), POINTER(c_double), POINTER(c_double)]
-	l1=c_double(0.0)
-	l2=c_double(0.0)
-	l3=c_double(0.0)
-	ts.gyration_eigen(vesicle , byref(l1), byref(l2), byref(l3))
-	return (l1.value, l2.value, l3.value)
+    ts.gyration_eigen.argtypes=[POINTER(ts_vesicle), POINTER(c_double), POINTER(c_double), POINTER(c_double)]
+    l1=c_double(0.0)
+    l2=c_double(0.0)
+    l3=c_double(0.0)
+    ts.gyration_eigen(vesicle , byref(l1), byref(l2), byref(l3))
+    return (l1.value, l2.value, l3.value)
 
 def vesicle_meancurvature(vesicle):
-	ts.vesicle_meancurvature.argtypes=[POINTER(ts_vesicle)]
-	ts.vesicle_meancurvature.restype=c_double
-	return ts.vesicle_meancurvature(vesicle)
+    ts.vesicle_meancurvature.argtypes=[POINTER(ts_vesicle)]
+    ts.vesicle_meancurvature.restype=c_double
+    return ts.vesicle_meancurvature(vesicle)
 
 def init_cluster_list():
-	ts.init_cluster_list.restype=POINTER(ts_cluster_list)
-	ret=ts.init_cluster_list()
-	return ret
+    ts.init_cluster_list.restype=POINTER(ts_cluster_list)
+    ret=ts.init_cluster_list()
+    return ret
 
 def clusterize_vesicle(vesicle, cluster_list):
-	ts.clusterize_vesicle.argtypes=[POINTER(ts_vesicle), POINTER(ts_cluster_list)]
-	ts.clusterize_vesicle(vesicle, cluster_list)
+    ts.clusterize_vesicle.argtypes=[POINTER(ts_vesicle), POINTER(ts_cluster_list)]
+    ts.clusterize_vesicle(vesicle, cluster_list)
 
 def cluster_list_free(cluster_list):
-	"""Free memory of cluster list"""
-	ts.cluster_list_free.argtypes=[POINTER(ts_cluster_list)]
-	ts.cluster_list_free(cluster_list)
+    """Free memory of cluster list"""
+    ts.cluster_list_free.argtypes=[POINTER(ts_cluster_list)]
+    ts.cluster_list_free(cluster_list)
 
 def stretchenergy(vesicle, triangle):
-	ts.stretchenergy.argtypes=[POINTER(ts_vesicle), POINTER(ts_triangle)]
-	ts.stretchenergy(vesicle,triangle)
+    ts.stretchenergy.argtypes=[POINTER(ts_vesicle), POINTER(ts_triangle)]
+    ts.stretchenergy(vesicle,triangle)
 
 def get_absolute_ulm2(vesicle,l,m): # cant find this function anywhere!? maybe it's calculateKc?
-	ts.get_absolute_ulm2.argtypes=[POINTER(ts_vesicle), c_double, c_double]
-	ts.get_absolute_ulm2.restype=c_double
-	ret=ts.get_absolute_ulm2(vesicle,l,m)
-	return ret
+    ts.get_absolute_ulm2.argtypes=[POINTER(ts_vesicle), c_double, c_double]
+    ts.get_absolute_ulm2.restype=c_double
+    ret=ts.get_absolute_ulm2(vesicle,l,m)
+    return ret
 
 def getR0(vesicle):
-	ts.getR0.argtypes=[POINTER(ts_vesicle)]
-	ts.getR0.restype=c_double
-	r0=ts.getR0(vesicle)
-	return r0
+    ts.getR0.argtypes=[POINTER(ts_vesicle)]
+    ts.getR0.restype=c_double
+    r0=ts.getR0(vesicle)
+    return r0
 
 def preparationSh(vesicle,r0):
-	ts.preparationSh.argtypes=[POINTER(ts_vesicle), c_double]
-	ts.preparationSh(vesicle,r0)
+    ts.preparationSh.argtypes=[POINTER(ts_vesicle), c_double]
+    ts.preparationSh(vesicle,r0)
 
 def calculateUlmComplex(vesicle):
-	ts.calculateUlmComplex.argtypes=[POINTER(ts_vesicle)]
-	ts.calculateUlmComplex(vesicle)
+    ts.calculateUlmComplex.argtypes=[POINTER(ts_vesicle)]
+    ts.calculateUlmComplex(vesicle)
 
 
 def Ulm2Complex2String(vesicle):
-	ts.Ulm2Complex2String.argtypes=[POINTER(ts_vesicle)]
-	ts.Ulm2Complex2String.restype=c_char_p
-	string=ts.Ulm2Complex2String(vesicle)
-	return string
+    ts.Ulm2Complex2String.argtypes=[POINTER(ts_vesicle)]
+    ts.Ulm2Complex2String.restype=c_char_p
+    string=ts.Ulm2Complex2String(vesicle)
+    return string
 
 def freeUlm2String(string):
-	ts.freeUlm2String.argtypes=[c_char_p]
-	ts.freeUlm2String(string)
+    ts.freeUlm2String.argtypes=[c_char_p]
+    ts.freeUlm2String(string)
 
 
 #This function seems not to exist!!!
 #def solve_for_ulm2(vesicle):
-#	ts.solve_for_ulm2.argtypes=[POINTER(ts_vesicle)]
-#	ts.solve_for_ulm2(vesicle)
+#    ts.solve_for_ulm2.argtypes=[POINTER(ts_vesicle)]
+#    ts.solve_for_ulm2(vesicle)
 
 def mean_curvature_and_energy(vesicle):
-	ts.mean_curvature_and_energy.argtypes=[POINTER(ts_vesicle)]
-	ts.mean_curvature_and_energy(vesicle)	
+    ts.mean_curvature_and_energy.argtypes=[POINTER(ts_vesicle)]
+    ts.mean_curvature_and_energy(vesicle)    
 
 def direct_force_energy(vesicle, vtx, vtx_old):
-		"""update the forces on a vertex and return the work done"""
-		ts.direct_force_energy.argtypes=[POINTER(ts_vesicle),POINTER(ts_vertex),POINTER(ts_vertex)]
-		ts.direct_force_energy.restype=c_double
-		return ts.direct_force_energy(vesicle,vtx,vtx_old)
+        """update the forces on a vertex and return the work done"""
+        ts.direct_force_energy.argtypes=[POINTER(ts_vesicle),POINTER(ts_vertex),POINTER(ts_vertex)]
+        ts.direct_force_energy.restype=c_double
+        return ts.direct_force_energy(vesicle,vtx,vtx_old)
 
 def update_vertex_force(vesicle, vtx):
-		"""update the forces on a vertex using direct_force_energy"""
-		direct_force_energy(vesicle,vtx,vtx)
-		return vtx.fx, vtx.fy, vtx.fz
+        """update the forces on a vertex using direct_force_energy"""
+        direct_force_energy(vesicle,vtx,vtx)
+        return vtx.fx, vtx.fy, vtx.fz
 
 def adhesion_energy_diff(vesicle,vtx,vtx_old):
-	"""Adhesion energy difference between old and new vertex"""
-	ts.adhesion_energy_diff.argtypes=[POINTER(ts_vesicle),POINTER(ts_vertex),POINTER(ts_vertex)]
-	ts.adhesion_energy_diff.restype=c_double
-	return ts.adhesion_energy_diff(vesicle,vtx,vtx_old)
+    """Adhesion energy difference between old and new vertex"""
+    ts.adhesion_energy_diff.argtypes=[POINTER(ts_vesicle),POINTER(ts_vertex),POINTER(ts_vertex)]
+    ts.adhesion_energy_diff.restype=c_double
+    return ts.adhesion_energy_diff(vesicle,vtx,vtx_old)
 
 def adhesion_geometry_distance(vesicle,vtx):
-	"""Distance between vertex and the adhesion geometry"""
-	ts.adhesion_geometry_distance.argtypes=[POINTER(ts_vesicle),POINTER(ts_vertex)]
-	ts.adhesion_geometry_distance.restype=c_double
-	return ts.adhesion_geometry_distance(vesicle,vtx)
+    """Distance between vertex and the adhesion geometry"""
+    ts.adhesion_geometry_distance.argtypes=[POINTER(ts_vesicle),POINTER(ts_vertex)]
+    ts.adhesion_geometry_distance.restype=c_double
+    return ts.adhesion_geometry_distance(vesicle,vtx)
 
 def adhesion_geometry_side(vesicle,vtx):
-	"""is the vertex normal oriented towards the adhesion geometry"""
-	ts.adhesion_geometry_side.argtypes=[POINTER(ts_vesicle),POINTER(ts_vertex)]
-	ts.adhesion_geometry_side.restype=ts_bool
-	return ts.adhesion_geometry_side(vesicle,vtx)
+    """is the vertex normal oriented towards the adhesion geometry"""
+    ts.adhesion_geometry_side.argtypes=[POINTER(ts_vesicle),POINTER(ts_vertex)]
+    ts.adhesion_geometry_side.restype=ts_bool
+    return ts.adhesion_geometry_side(vesicle,vtx)
 
 def vertex_adhesion(vesicle,vtx):
-	"""energy of a single vertex: piece of adhesion_energy_diff"""
-	delta = adhesion_geometry_distance(vesicle,vtx)
-	is_oriented = adhesion_geometry_side(vesicle,vtx)
-	model = vesicle.tape.adhesion_model
-	dz = vesicle.tape.adhesion_cutoff
-	if vtx.type&is_adhesive_vtx and is_oriented and delta<=dz:
-		if model==adhesion_step_potential:
-			return vtx.ad_w
-		elif model==adhesion_parabolic_potential:
-			return vtx.ad_w*(1-(delta/dz)**2)
-	return 0
+    """energy of a single vertex: piece of adhesion_energy_diff"""
+    delta = adhesion_geometry_distance(vesicle,vtx)
+    is_oriented = adhesion_geometry_side(vesicle,vtx)
+    model = vesicle.tape.adhesion_model
+    dz = vesicle.tape.adhesion_cutoff
+    if vtx.type&is_adhesive_vtx and is_oriented and delta<=dz:
+        if model==adhesion_step_potential:
+            return vtx.ad_w
+        elif model==adhesion_parabolic_potential:
+            return vtx.ad_w*(1-(delta/dz)**2)
+    return 0
 
 
 if __name__=="__main__":

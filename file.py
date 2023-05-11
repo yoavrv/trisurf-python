@@ -404,13 +404,13 @@ class SimFrame():
         self.get_timesteps = lambda path: sorted(glob(os.path.join(path, timesteps_glob)))
         self.parameters = get_folder_params(main_folder, param_file_name)
         self.parameters = self.parameters if self.parameters else {}
-        self.store_name=store_name
+        self.store_name = store_name
         columns = ['path','timesteps','store', *self.parameters.keys()] # rearange them back later
         xs = sorted(glob(os.path.join(main_folder,subfolder_glob)))
-        init_values = [*(x[-1] for x in self.parameters.values()),
-                       self.main_folder,
+        init_values = [self.main_folder,
                        np.ones(len(xs),dtype=int),
-                       np.ones(len(xs),dtype=bool)]
+                       np.ones(len(xs),dtype=bool),
+                       *(x[-1] for x in self.parameters.values()),]
         self.df = pd.DataFrame({c: v for c,v in zip(columns, init_values)})
         i = 0
         for path in xs:
@@ -435,7 +435,7 @@ class SimFrame():
         self.df = self.df[[*reorder_keys,'path','timesteps','store']]
         self.subspace = self.df[:]
 
-    def query_subspace(self, query_str):
+    def query_subspace(self, query_str=''):
         """Fix a subspace view of the dataframe based on a query.
         
         self.query_subspace(q) is equivalent to self.subspace=self.df.query(q)
@@ -459,6 +459,7 @@ class SimFrame():
         """
         if query_str is None or query_str=='':
             self.subspace = self.df[:] # full view
+            return self.subspace
         self.subspace = self.df.query(query_str)
         return self.subspace
 
@@ -468,3 +469,6 @@ class SimFrame():
     
     def __len__(self):
         return self.subspace.__len__()
+    
+    def last_timesteps(self):
+        return [x.path+f'timestep_{x.timesteps-1:06}.vtu' for x in self]

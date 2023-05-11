@@ -31,7 +31,7 @@ def get_current_file():
     """Get the file associated with the current active source"""
     t = int(ps.GetAnimationScene().TimeKeeper.Time)
     files = ps.GetActiveSource().FileName
-    return files[t]
+    return files[min(t,len(files)-1)]
 
 
 def animation_iter(*args):
@@ -105,12 +105,17 @@ class GridParaview():
             for key, value in kwargs.items():
                 dp.SetPropertyWithName(key, value)
 
-    def change_vesicle_properties(self, **kwargs):
+    def change_vesicles_properties(self, **kwargs):
         for view in self.views.flat:
             dp = ps.GetDisplayProperties(self.sources[view], view)
             for key, value in kwargs.items():
                 dp.SetPropertyWithName(key, value)
-
+    
+    def color_vesicles_by(self,field):
+        for view, source in self.items():
+            ps.ColorBy(ps.GetDisplayProperties(source,view),
+                       ('POINTS',field))
+        
     def iter_views(self, x=1, y=1, fast='x'):
         """Iterate views [x0y0, x1y0, x2y0... x0y1...] (s shape).
 
@@ -189,7 +194,11 @@ def text_test(views, texts):
     return texts_tester
 
 
-def make_load_show_i(views, sims, slc, names, texts):
+def make_load_show_i(views, sims, slc, names, texts,field="spontaneous_curvature"):
+    if type(field)==str:
+        getfield=lambda i: field
+    else:
+        getfield=lambda i: field[i]
     if len(views)==1:
         getview = lambda i: views
     else:
@@ -200,13 +209,13 @@ def make_load_show_i(views, sims, slc, names, texts):
     else: # assume sims is a SimFrame
         def get_timesteps(i):    
             path, time = sims.subspace.iloc[i][['path','timesteps']]
-            return [os.path.join(path,f'timestep_{t:06}.vtu') for t in range(time)[slc]]
+            return [os.path.join(path,f'timestep_{t:06}.vtu') for t in range(int(time))[slc]]
     def load_show_i(i):
-        return loadShow(view=getview(i), files=get_timesteps(i), name=names[i], text=texts[i])
+        return loadShow(view=getview(i), files=get_timesteps(i), name=names[i], text=texts[i], field=getfield(i))
     return load_show_i
 
 
-def view_simframe_slice(simframe, i, view=None, slc=None, text=None):
+def view_simframe_slice(simframe, i, view=None, slc=None, text=None, field="spontaneous_curvature"):
     row = simframe.subspace.iloc[i]
     if slc is None:
         slc = slice(None)
@@ -218,7 +227,7 @@ def view_simframe_slice(simframe, i, view=None, slc=None, text=None):
     loadShow(view, 
              [os.path.join(row.path,f'timestep_{t:06}.vtu') 
               for t in range(row.timesteps)[slc]],
-             f"x{simframe.subspace.index[i]:04}", text
+             f"x{simframe.subspace.index[i]:04}", text, field=field,
              )
 
 
