@@ -626,3 +626,12 @@ def _streamline_tape(text):
     return "\n".join(x for x in text.splitlines()
                      if len(x) > 0 and x[0] != '#' and x[0] != ' '
                      and x.split('=')[0] not in no_care)
+
+_adhesion_z= re.compile('^(z_adhesion|adhesion_z|adhesion_cuttoff|adhesion_cutoff)=(.*)',re.MULTILINE)
+def saddle_vtu(v: PyVtu):
+    z_ad, cut = _adhesion_z.findall(v.tape)
+    if 'z' not in z_ad[0]:
+        z, dz = float(cut[1]), float(z_ad[1])
+    else:
+        z, dz = float(z_ad[1]), float(cut[1])
+    edge = v.pos[:,0]

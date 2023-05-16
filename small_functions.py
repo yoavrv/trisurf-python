@@ -76,12 +76,12 @@ def _string_to_value(value):
             return value
 
 _pattern_tape_all=compile_tape_regex_option(None)
-def extract_tape_options(tape):
+def get_tape_options(tape):
     """Extract tape as text to a dictionary of all options"""
     options = _pattern_tape_all.findall(tape)
     return {option: _string_to_value(value) for option,value in options}
 
-_pattern_tape_adhesion=compile_tape_regex_option(['z_adhesion','adhesion_cuttoff'])
+_pattern_tape_adhesion=compile_tape_regex_option(['z_adhesion','adhesion_z','adhesion_cuttoff','adhesion_cutoff'])
 def extract_tape_adhesion_plane(tape):
     """Get the top of the adhesion plane from tape (z0+cutoff).
     

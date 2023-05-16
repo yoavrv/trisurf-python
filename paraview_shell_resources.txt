@@ -54,7 +54,8 @@ unique_values = frame.subspace[keys].apply(np.unique,axis=0)
 (keyN, N),(keyM, M) = [(k, len(l)) for k,l in unique_values.items() if len(l)!=1]
 fast='x'
 if N>M:
-    (N, M, keyN, keyM), fast = (M, N, keyM, keyN), 'y'
+  (N, M, keyN, keyM), fast = (M, N, keyM, keyN), 'y'
+
 print(f"{N}x{M} {keyN}x{keyM}")
 grid = fp.GridParaview(N, M) # grid = fp.GridParaview(M, N) 
 grid.link_views()
@@ -87,7 +88,7 @@ for view in views:
 time_slc = SLC[:]
 load_show_i = fp.make_load_show_i(views, frame, time_slc, names, param_texts)
 
-for i,_ in enumerate(views):  # views[1:],1):
+for i,_ in enumerate(views):
     load_show_i(i)
 
 grid.snap_animation()
@@ -97,3 +98,7 @@ for view in views:
 
 for view, source in grid.sources.items():
     GetDisplayProperties(source, view=view).Opacity=0.7
+
+def transfer(df_old, df_new):
+  for source,rpath, path in zip(grid.sources.values(), df_new.path, df_old.path):
+    source.FileName = [x.replace(rpath,path) for x in source.FileName]
