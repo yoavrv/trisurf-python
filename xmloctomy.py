@@ -71,7 +71,11 @@ def main():
                         help='don\'t streamline tape',
                         action='store_false')
     parser.add_argument("-r", "--remove-fields", nargs='?',
-                        help="remove fields \"fld1,fld2,fld3\" from the file\n",
+                        help="""remove fields from the file\n
+                        'debug' will remove various debug fields (like eig0, eig1)
+                        'reduce_new' will remove more fields (like gaussian curvature)
+                        'all' will remove almost all new fields (like type)
+                        'fld1,fld2,fld3,...' will remove the specified fields (by xml-element name!)""",
                         type=str,
                         default=None, const='')
     parser.add_argument("-t", "--tar-archive", nargs="?",

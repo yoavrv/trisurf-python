@@ -46,7 +46,7 @@ _new_vtu_fields = ['type', 'direct_force', 'adhesion_strength',
 _default_fields = ["type","c0", "force", "w", "e"] # default fields to loads (besides structural position, blist, tlist)
 
 _known_shorthands = {"Koordinates_tock": "pos", "connectivity": ("blist","tlist"),
-                     "bond_list": "blist", "triganle_list": "tlist",
+                     "bond_list": "blist", "triangle_list": "tlist",
                      'adhesion_strength': "ad_w", "direct_force": "f0",
                      "bonding_strength": "w", "spontaneous_curvature": "c0",
                      "curvature": "c", "bending_energy": "e",
@@ -585,7 +585,7 @@ def _xmloctomy(vtu_path, streamline=False, rmfields=None):
     rmfields='debug' will remove various debug fields (like eig0, eig1)
     rmfields='reduce_new' will remove more fields (like gaussian curvature)
     rmfields='all' will remove almost all new fields (like type)
-    rmfields=['field1',...] will removfe the specified fields (by element name!)
+    rmfields=['field1',...] will remove the specified fields (by element name!)
     """
     tree = ET.parse(vtu_path)
     root = tree.getroot()

@@ -37,6 +37,8 @@ except ImportError as e:
 def curr_v(): return PyVtu(fp.get_current_file());
 
 loc_sims = r'\\cf-gpfs-fsrv\cf_work\sim\bicurvatures\23_vicsek_combined'
+# steal from current path loc_sims/x_####/timetsep_000###.vtu loaded as active source
+# loc_sims = os.path.split(os.path.split(fp.get_current_file())[0])[0]
 
 ## wait a few minutes to load if remote
 frame = file.SimFrame(loc_sims)
@@ -85,7 +87,7 @@ for view in views:
 
 # create load_show:
 # a function responsible for loading the ith simulation to the ith view.
-time_slc = SLC[:]
+time_slc = SLC[::5]
 load_show_i = fp.make_load_show_i(views, frame, time_slc, names, param_texts)
 
 for i,_ in enumerate(views):
