@@ -627,11 +627,38 @@ def _streamline_tape(text):
                      if len(x) > 0 and x[0] != '#' and x[0] != ' '
                      and x.split('=')[0] not in no_care)
 
+
+_arrays_to_change_type = {'c0','d0','f0','w', 'ad_w','type', 'k', 'k2'}
+def change_vertices(v: PyVtu, indices, type_, values=None):
+    """Change of vertices 'indices' to the new 'type_', by values dictionary/first of the same type.
+    
+    values should be a dictionary {'c0': ,'d0': ,'f0': ,'w': , 'ad_w': ,'type': , 'k': , 'k2': } 
+    updating each value, or None, in which case the first vertex in 'v' which is of the new type
+    is assumed to be the prototype for the rest.
+    """
+    if not values:
+        pro = v.indices[(v.type==type_)][0]
+        values = {key: v._arrays[key][pro] for key in _arrays_to_change_type if key in v._arrays}
+    for array, value in values.items():
+        if array in v._arrays:
+            v._arrays[array][indices]=value
+        else:
+            raise KeyError(f"{array} is not found in v and can't be updated!")
+
 _adhesion_z= re.compile('^(z_adhesion|adhesion_z|adhesion_cuttoff|adhesion_cutoff)=(.*)',re.MULTILINE)
-def saddle_vtu(v: PyVtu):
+def saddle_vtu_indices(v: PyVtu, num=50, direction: tuple=(1,0,0)):
+    """Return the indices of vertices that would "saddle" the vtu (leading edge)."""
     z_ad, cut = _adhesion_z.findall(v.tape)
     if 'z' not in z_ad[0]:
         z, dz = float(cut[1]), float(z_ad[1])
     else:
         z, dz = float(z_ad[1]), float(cut[1])
-    edge = v.pos[:,0]
+    bottom = v.pos[:,2]<(z+dz)
+    left, right = v.blist[:,0], v.blist[:,1]
+    edge_bond = bottom[left]^bottom[right]
+    edge = np.isin(v.indices,np.unique(edge_bond))
+    return v.indices[edge][(v.pos[edge]@direction).argsort()[-num:]]
+
+
+
+
