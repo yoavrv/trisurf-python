@@ -87,7 +87,7 @@ for view in views:
 
 # create load_show:
 # a function responsible for loading the ith simulation to the ith view.
-time_slc = SLC[::5]
+time_slc = SLC[:]
 load_show_i = fp.make_load_show_i(views, frame, time_slc, names, param_texts)
 
 for i,_ in enumerate(views):
@@ -102,5 +102,6 @@ for view, source in grid.sources.items():
     GetDisplayProperties(source, view=view).Opacity=0.7
 
 def transfer(df_old, df_new):
+  """To do: fix"""
   for source,rpath, path in zip(grid.sources.values(), df_new.path, df_old.path):
     source.FileName = [x.replace(rpath,path) for x in source.FileName]

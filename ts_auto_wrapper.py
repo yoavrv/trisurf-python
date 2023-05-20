@@ -15,10 +15,6 @@ This is handled by the dictionaries 'base_types' and 'added_types', map the name
 TSWrapper can also take a dictionary for even more types.
 """
 
-########################
-# 0: imports and paths #
-########################
-
 from ctypes import *
 from pathlib import Path
 import sys
@@ -28,7 +24,7 @@ import warnings
 # 0: Horrible homemade c parser. TODO: trash #
 ##############################################
 
-# mapping from c string representatin of type "int long ..." to ctype types
+# mapping from c string representation of type "int long ..." to ctype types
 # it is critical that longer, more complete types come before simpler
 # e.g. 'long' must be after 'long int'
 base_types = {
@@ -82,7 +78,7 @@ base_types = {
 }
 
 added_types = {
-    'gsl_complex' : type('gsl_complex', (Structure,),{'_fields':['dat',2*c_double]}),
+    'gsl_complex' : type('gsl_complex', (Structure,),{'_fields_':['dat',2*c_double]}),
     'xmlDocPtr' : c_void_p,
     'xmlNodePtr' : c_void_p,
 }
@@ -223,19 +219,19 @@ class TSWrapper():
         ts.globals: global variables
         ts.enums: enum definitions
         ts.TS_...: several #defines are hardcoded (e.g. TS_SUCCESS)
-    and misc. things: ctype function POINTER, pointer, pretty_print, and byte_to_int
+    and misc. things: ctype function POINTER, pointer; a pretty_print, and a byte_to_int function
 
     The raw functions with 'restype' and 'argtype' are available as in ts.functions._c_functionname
     The CDLL itself is available in ts.cdll
 
-    The wrapper also requires foreknowledge on the names and types used by the libraries, such as
+    The wrapper also requires knowledge on the names of types used by the libraries, such as
     'gsl_complex' and 'xmlDocPtr'. TSWrapper can accept a dictionary for more types {'name': ctypes.structure...}.
     """
     
     def __init__(self,path_to_trisurf='/opt/workspace/msc_project/cluster-trisurf', more_types=None):
         """Initializing the wrapper: Roughly the equivalent of a wrapper module code, indented twice."""
         
-        # add module functions:
+        # add module-like functionality:
         self.clean_text = clean_text
         self.base_types = base_types
         self.added_types = added_types
@@ -447,6 +443,7 @@ class TSWrapper():
                 self.functions.__dict__[func]=f
                 self.__dict__[func]=f
         except (RuntimeError,IndexError,ValueError,KeyError) as e:
+            warnings.warn("Error while trying to parse functions due to the following error:")
             print(e)
     
 
@@ -497,6 +494,7 @@ class TSWrapper():
     
     def byte_to_int(self,byte):
         return int.from_bytes(byte,sys.byteorder)
+
 
 if __name__=="__main__":
     print(f"running wrapper: {__name__}")
