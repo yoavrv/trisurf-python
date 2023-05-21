@@ -78,7 +78,7 @@ base_types = {
 }
 
 added_types = {
-    'gsl_complex' : type('gsl_complex', (Structure,),{'_fields_':['dat',2*c_double]}),
+    'gsl_complex' : type('gsl_complex', (Structure,),{'_fields_':[('dat',2*c_double)]}),
     'xmlDocPtr' : c_void_p,
     'xmlNodePtr' : c_void_p,
 }
