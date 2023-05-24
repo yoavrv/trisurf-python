@@ -1,0 +1,24 @@
+[2023-05-24 18:44:43] TRISURF-NG v. a124e32, compiled on: May 24 2023 16:05:49.
+[2023-05-24 18:44:43] Programming done by: Samo Penic and Miha Fosnaric
+[2023-05-24 18:44:43] Released under terms of GPLv3
+[2023-05-24 18:44:43] Starting program...
+
+[2023-05-24 18:44:43] ************************************************
+[2023-05-24 18:44:43] **** Restoring vesicle from VTK points list ****
+[2023-05-24 18:44:43] ************************************************
+
+[2023-05-24 18:44:43] No .status file. The iteration count will start from 0
+[2023-05-24 18:44:43] using debug curvature model 15 (use new energy): set to 7 to use the old energy method
+[2023-05-24 18:44:43] simulation seed 1684943083
+[2023-05-24 18:44:43] Setting volume V0=1873.60715166322597725
+[2023-05-24 18:44:43] Setting area A0=760.56143968803814914
+[2023-05-24 18:44:46] Done 1 out of 10 iterations (x 1000 MC sweeps).
+[2023-05-24 18:44:48] Done 2 out of 10 iterations (x 1000 MC sweeps).
+[2023-05-24 18:44:50] Done 3 out of 10 iterations (x 1000 MC sweeps).
+[2023-05-24 18:44:52] Done 4 out of 10 iterations (x 1000 MC sweeps).
+[2023-05-24 18:44:55] Done 5 out of 10 iterations (x 1000 MC sweeps).
+[2023-05-24 18:44:57] Done 6 out of 10 iterations (x 1000 MC sweeps).
+[2023-05-24 18:44:59] Done 7 out of 10 iterations (x 1000 MC sweeps).
+[2023-05-24 18:45:02] Done 8 out of 10 iterations (x 1000 MC sweeps).
+[2023-05-24 18:45:05] Done 9 out of 10 iterations (x 1000 MC sweeps).
+[2023-05-24 18:45:07] Done 10 out of 10 iterations (x 1000 MC sweeps).

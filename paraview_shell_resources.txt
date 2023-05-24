@@ -36,7 +36,7 @@ except ImportError as e:
 # get vtu for the latest file shown (must be on the source!)
 def curr_v(): return PyVtu(fp.get_current_file());
 
-loc_sims = r'\\cf-gpfs-fsrv\cf_work\sim\bicurvatures\23_vicsek_combined'
+loc_sims = r'\\cf-gpfs-fsrv\cf_work\yoavra\sim\bicurvatures\32_engulfing_aligned'
 # steal from current path loc_sims/x_####/timetsep_000###.vtu loaded as active source
 # loc_sims = os.path.split(os.path.split(fp.get_current_file())[0])[0]
 

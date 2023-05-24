@@ -1,0 +1,23 @@
+[2023-05-24 18:37:44] TRISURF-NG v. a124e32, compiled on: May 24 2023 16:05:49.
+[2023-05-24 18:37:44] Programming done by: Samo Penic and Miha Fosnaric
+[2023-05-24 18:37:44] Released under terms of GPLv3
+[2023-05-24 18:37:44] Starting program...
+
+[2023-05-24 18:37:44] **********************************************************************
+[2023-05-24 18:37:44] **** Recreating vesicle from dump file and continuing simulation *****
+[2023-05-24 18:37:44] **********************************************************************
+
+[2023-05-24 18:37:45] using debug curvature model 15 (use new energy): set to 7 to use the old energy method
+[2023-05-24 18:37:45] simulation seed 1684942665
+[2023-05-24 18:37:45] Setting volume V0=1900.94212002665403816
+[2023-05-24 18:37:45] Setting area A0=769.81037142648301597
+[2023-05-24 18:37:47] Done 1 out of 10 iterations (x 1000 MC sweeps).
+[2023-05-24 18:37:49] Done 2 out of 10 iterations (x 1000 MC sweeps).
+[2023-05-24 18:37:51] Done 3 out of 10 iterations (x 1000 MC sweeps).
+[2023-05-24 18:37:54] Done 4 out of 10 iterations (x 1000 MC sweeps).
+[2023-05-24 18:37:56] Done 5 out of 10 iterations (x 1000 MC sweeps).
+[2023-05-24 18:37:58] Done 6 out of 10 iterations (x 1000 MC sweeps).
+[2023-05-24 18:38:01] Done 7 out of 10 iterations (x 1000 MC sweeps).
+[2023-05-24 18:38:03] Done 8 out of 10 iterations (x 1000 MC sweeps).
+[2023-05-24 18:38:05] Done 9 out of 10 iterations (x 1000 MC sweeps).
+[2023-05-24 18:38:08] Done 10 out of 10 iterations (x 1000 MC sweeps).
