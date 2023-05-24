@@ -136,3 +136,6 @@ statistics.csv
 dump.bin
 output.pvd
 dout
+
+# testing of trisurf
+trisurf_test
