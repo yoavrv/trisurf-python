@@ -339,9 +339,12 @@ class TSWrapper():
             defline = ' '.join((pre,post)).strip() # typedef [type...] name
             ty = ' '.join(defline.split()[1:-1]) if 'inline' not in defline else 'inline'
             name = defline.split()[-1].strip(' ;')
-            if ty!='inline' and ')' not in name:
-                self.globals[name]=self.ts_types[ty].in_dll(self.cdll,name)
-                self.__dict__[name]=self.globals[name] # all globals are available in namespace
+            if ty!='inline' and ')' not in name: # ) is in function pointers which I don't know how to parse
+                try:
+                    self.globals[name]=self.ts_types[ty].in_dll(self.cdll,name)
+                    self.__dict__[name]=self.globals[name] # all globals are available in the namespace
+                except ValueError:
+                    self.globals[name]=None # globsl could not be found in dll
 
         self.dec_funcs = {}
         text=(self.text.replace(' extern ',' ').replace(' inline ',' ').replace(' const ',' ')
