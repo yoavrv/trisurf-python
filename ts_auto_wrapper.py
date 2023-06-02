@@ -221,7 +221,7 @@ class TSWrapper():
         ts.TS_...: several #defines are hardcoded (e.g. TS_SUCCESS)
     and misc. things: ctype function POINTER, pointer; a pretty_print, and a byte_to_int function
 
-    The raw functions with 'restype' and 'argtype' are available as in ts.functions._c_functionname
+    The raw functions with 'restype' and 'argtypes' are available as in ts.functions._c_functionname
     The CDLL itself is available in ts.cdll
 
     The wrapper also requires knowledge on the names of types used by the libraries, such as
@@ -389,11 +389,11 @@ class TSWrapper():
 
         try:
             for func, (tyname, ty, args) in self.dec_funcs.items():
-                signature=[parse_type(y,self.ts_types) for x in args.split(',') if (y:=x.strip())]
+                signature=[parse_type(y,self.ts_types) for x in args.split(',') if (y:=x.strip()) and y!='...' and y!='void']
                 signature_name_type = [list(x[1].items())[0] for x in signature]
                 signature_type = [x[1] for x in signature_name_type]
                 self.functions.__dict__["_c_"+func] = _c_f = self.cdll[func]
-                self.functions.__dict__["_c_"+func].argtype=signature_type
+                self.functions.__dict__["_c_"+func].argtypes=signature_type
                 self.functions.__dict__["_c_"+func].restype=ty
                 signature_str= ""
                 process_args=[]
@@ -445,7 +445,7 @@ class TSWrapper():
                 f.__doc__=doc
                 self.functions.__dict__[func]=f
                 self.__dict__[func]=f
-        except (RuntimeError,IndexError,ValueError,KeyError) as e:
+        except (RuntimeError,IndexError,ValueError,KeyError,TypeError) as e:
             warnings.warn("Error while trying to parse functions due to the following error:")
             print(e)
     
