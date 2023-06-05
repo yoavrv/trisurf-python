@@ -114,8 +114,8 @@ def modify_tapetext(text, param_dict, base_temperature=20, extra_temperature_nam
     if do_temperature:
         temperature_reprules = {'w', 'f', 'F', 'xk0', 'kx2', 'pressure',
                                 'xkA0', 'adhesion_strength'}
-        if extra_temperature_keys:
-            temperature_reprules.update(extra_temperature_keys)
+        if extra_temperature_names:
+            temperature_reprules.update(extra_temperature_names)
         factor = reprules['temperature']/base_temperature
     for i, line in enumerate(lines):
         name, *rest = line.split("=")
@@ -210,8 +210,7 @@ def make_scripts(script_name, job_name, subdirectories,
                  trisurf_path="~/apps/bin/trisurf"):
     """Generate PBS compatible scripts for running trisurf in a folder.
     
-    The subfolders (generated from param_iterator) are split into chunks
-    each with its own script "job_script_##"
+    The subdirectories are split into chunks each with its own script "job_script_##"
     returns list of (script_name,script_text)
     """
     scripts_out = []
@@ -229,7 +228,7 @@ def make_scripts(script_name, job_name, subdirectories,
     xsize = len(str(len(all_directories))) # number of digits for the script number i.e. 1000 scripts need job_script_0000
     chunk_size = next(chunk_sizes)
     current_directories = []
-    for i, directory in enumerate(all_directories):
+    for directory in all_directories:
         current_directories.append(directory)
         if len(current_directories) == chunk_size:
             head = job_script_head(f"{job_name}_{jobs_i:0{xsize}}",
