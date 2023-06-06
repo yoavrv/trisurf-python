@@ -183,7 +183,7 @@ trisurf_prog={trisurf_name}
 start_params={start_params}
 continue_params={continue_params}
 directories={directories}
-for dir in ${{directories[@]}} do;
+for dir in ${{directories[@]}} ; do
     cd $dir && {{
     sleep 2
     if [[ -e dump.bin ]] ; then
