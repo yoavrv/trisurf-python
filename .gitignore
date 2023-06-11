@@ -138,4 +138,4 @@ output.pvd
 dout
 
 # testing of trisurf
-trisurf_test
+trisurf_test/

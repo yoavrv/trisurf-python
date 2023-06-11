@@ -16,6 +16,7 @@ TSWrapper can also take a dictionary for even more types.
 """
 
 from ctypes import *
+import ctypes
 from pathlib import Path
 import sys
 import warnings
@@ -379,13 +380,25 @@ class TSWrapper():
         self.functions=ts_functions()
         ts_success = self.ts_types['ts_bool'](self.TS_SUCCESS).value
         ts_fail = self.ts_types['ts_bool'](self.TS_FAIL).value
-        def process_str_to_char_p(arg): return str(arg).encode('ascii');
+        def is_ctypes(targ):
+            return (issubclass(targ, ctypes._SimpleCData) or issubclass(targ, ctypes._Pointer)
+                 or issubclass(targ, Array) or issubclass(targ, Structure) 
+                 or issubclass(targ, Union))
+        def process_str_to_buffer(arg):
+            if is_ctypes(type(arg)):
+                return arg
+            arg_to_str = str(arg).encode('ascii')
+            return create_string_buffer(arg_to_str,max(10*len(arg_to_str),1024));
         def process_true_false_to_ts_bool(arg): return ts_success if arg else ts_fail;
         def process_create_double_ref(arg): 
             return pointer(c_double(arg)) if type(arg) in {int, float} else arg;
         def process_neutral(arg): return arg;
         def process_ts_bool_to_true_false(arg): return arg==ts_success;
         def process_double_ref_to_doube(arg): return arg.contents.value;
+        def process_buffer_to_str(arg):
+            return arg.value.decode()
+        def check_buffer_changed(arg,out):
+            return str(arg)!=out.value.decode()
 
         try:
             for func, (tyname, ty, args) in self.dec_funcs.items():
@@ -398,39 +411,45 @@ class TSWrapper():
                 signature_str= ""
                 process_args=[]
                 process_out=[]
+                check_args=[]
                 arg_types = []
                 if tyname=='ts_bool':
                     process_out.append(process_ts_bool_to_true_false)
                     ret_type_str = f"Return {tyname} as True/False"
                 else:
-                     process_out.append(process_neutral)
-                     ret_type_str = f"Return {ty}"
+                    process_out.append(process_neutral)
+                    ret_type_str = f"Return {ty}"
                 for (arg_type_name, _), (arg_name,arg_type) in zip(signature,signature_name_type):
                     if arg_type_name=='ts_bool':
                         process_args.append(process_true_false_to_ts_bool)
                         process_out.append(None)
+                        check_args.append(None)
                         arg_types.append(arg_type)
                         signature_str = f'{signature_str}, {arg_name}: bool'
                     elif arg_type==c_char_p or arg_type==POINTER(c_char):
-                        process_args.append(process_str_to_char_p)
-                        process_out.append(None)
+                        process_args.append(process_str_to_buffer)
+                        process_out.append(process_buffer_to_str)
+                        check_args.append(check_buffer_changed)
                         arg_types.append(arg_type)
-                        signature_str = f'{signature_str}, {arg_name}: str or __str__'
+                        signature_str = f'{signature_str}, {arg_name}: c buffer or __str__'
+                        ret_type_str = f"{ret_type_str}, {arg_name}: c buffer or str"
                     elif arg_type==POINTER(c_double):
                         process_args.append(process_create_double_ref)
                         process_out.append(process_double_ref_to_doube)
+                        check_args.append(None)
                         arg_types.append(arg_type)
                         signature_str = f'{signature_str}, {arg_name}: {arg_type} or double'
                         ret_type_str = f"{ret_type_str}, {arg_name}: double"
                     else:
                         process_args.append(process_neutral)
                         process_out.append(None)
+                        check_args.append(None)
                         arg_types.append(arg_type)
                         signature_str = f'{signature_str}, {arg_name}: {arg_type}'
 
                 doc = f"Wrapper for {func} with arguments {signature_str}. {ret_type_str}"
                 def f(*args, _base_c_function=_c_f, arg_types=arg_types,
-                       process_args=process_args, process_out=process_out):
+                       process_args=process_args, process_out=process_out, check_args=check_args):
                     nargs = [f(a) for f,a in zip(process_args,args)]
                     l=len(nargs)
                     nargs.extend([f(0) for f,t in zip(process_args[l:],arg_types[l:])
@@ -438,7 +457,9 @@ class TSWrapper():
                     if len(nargs)<len(arg_types):
                         raise ValueError(f"Not enough arguments: given {args}, proccessed to {nargs}, requires {arg_types}")
                     ret = _base_c_function(*nargs)
-                    all_ret = (*[f(x) for f,x in zip(process_out,(ret,*nargs)) if f],)
+                    checks = [True for x in process_out]
+                    checks[1:len(args)]=[f is None or f(a,o) for f,a,o in zip(check_args,args,nargs)]
+                    all_ret = (*[f(x) for f,x,c in zip(process_out,(ret,*nargs),checks) if f and c],)
                     if len(all_ret)==1:
                         return all_ret[0]
                     return all_ret
