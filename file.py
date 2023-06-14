@@ -416,16 +416,21 @@ class SimFrame():
         for path in xs:
             try:
                 params = get_folder_params(path)
-                if params is None and not self.parameters:
-                    # no parameters.json found anywhere
+                if params is None:
+                    # no parameters.json found in folder
                     params=valid_simulation_dict(path)
+                    if self.parameters and params:
+                        params = {key: values[params[key]] for key, values in self.parameters.items()}
+                    if not params:
+                        continue
                 num_timesteps=len(self.get_timesteps(path))
-                if params or num_timesteps:
+                store = os.path.join(path, store_name)
+                has_store = os.path.isfile(store)
+                if params or num_timesteps or has_store:
                     self.df.loc[i,'path'] = path
                     self.df.loc[i,params.keys()]=params.values()
                     self.df.loc[i,'timesteps'] = num_timesteps
-                    store = os.path.join(path, store_name)
-                    self.df.loc[i,'store']=os.path.isfile(store)
+                    self.df.loc[i,'store']=has_store
                     i+=1
             except (FileNotFoundError, NotADirectoryError):
                 continue

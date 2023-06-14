@@ -101,6 +101,13 @@ for view in views:
 for view, source in grid.sources.items():
     GetDisplayProperties(source, view=view).Opacity=0.7
 
+# show some source
+# s=GetActiveSource()
+# for view in views:
+#   Show(s,view)
+#   GetDisplayProperties(s, view=view).AmbientColor=[1/3,1.,1.]
+#   GetDisplayProperties(s, view=view).DiffuseColor=[1/3,1.,1.]
+
 def transfer(df_old, df_new):
   """To do: fix"""
   for source,rpath, path in zip(grid.sources.values(), df_new.path, df_old.path):
