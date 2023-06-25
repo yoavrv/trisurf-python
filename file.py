@@ -35,10 +35,13 @@ from small_functions import valid_simulation_dict
 
 def is_tarfile_and_not_directory(x):
     """Wrap tarfile.is_tarfile but without breaking error."""
-    try:
-        return tarfile.is_tarfile(x)
-    except IsADirectoryError:
-        return False
+    name = os.path.split(x)
+    if name.endswith('.tar') or name.endswith('.tar.gz'):
+        try:
+            return tarfile.is_tarfile(x)
+        except IsADirectoryError:
+            return False
+    return False
 
 
 def extract_sim_params(sim_parameter_file, expected_keys=None) -> dict:

@@ -90,6 +90,15 @@ def extract_tape_adhesion_plane(tape):
     z_adh, z_cutoff = _pattern_tape_adhesion.findall(tape)
     return float(z_adh[1])+float(z_cutoff[1])
 
+_pattern_tape_adhesion_2=compile_tape_regex_option(['z_adhesion','adhesion_z','adhesion_cuttoff','adhesion_cutoff','adhesion_radius'])
+def from_tape_is_adhered_to_sphere(tape, pos):
+    """Get the top of the adhesion sphere from tape (r+cutoff).
+    
+    Returns boolean array from pos
+    """
+    cutoff, radius, z0 = sorted(_pattern_tape_adhesion_2.findall(tape), key=lambda x: x[0])
+    return ((pos-[[0,0,float(z0[1])-float(radius[1])]])**2).sum(axis=-1)<(float(cutoff[1])+float(radius[1]))**2
+
 
 def a_in_b_dict(a: dict, b: dict) -> bool:
     """Return True if a[key] in b[key] for all b.keys()."""

@@ -303,10 +303,10 @@ class TSWrapper():
                 ty = ' '.join(defline.split()[1:-1]) if 'struct' not in defline else 'struct'
                 self.typedefs[name]=ty
 
-        self.ts_types= ({k: self.base_types.get(v) for k,v in self.typedefs.items()} 
-                        | base_types
-                        | added_types
-                       )
+        self.ts_types= {**{k: self.base_types.get(v) for k,v in self.typedefs.items()},
+                        **base_types,
+                        **added_types,
+                       }
         
         # structures: initialize per type
  
@@ -495,7 +495,7 @@ class TSWrapper():
         except (TypeError, ValueError):
             return (field, thing_c)
  
-    def pretty_text(self,thing_c):
+    def pretty_print_struct(self,thing_c):
         """Nicer string representation of a ctypes struct, like LP_ts_tape"""
         stuff=[]
         ret=''
@@ -518,6 +518,26 @@ class TSWrapper():
     
     def byte_to_int(self,byte):
         return int.from_bytes(byte,sys.byteorder)
+    
+    def iter_xlist(self,vesiclePtr,xlist_name='vlist',as_pointer=False):
+        """Iterate over some vesicle->xlist->xs. Default vesicle->vlist->vtx[:vlist.n]."""
+        lst = vesiclePtr.contents.__getattribute__(xlist_name)
+        if xlist_name=='vlist':
+            n, lst = lst.contents.n, lst.contents.vtx
+        elif xlist_name=='clist':
+            n, lst = lst.contents.cellno, lst.contents.cell
+        elif xlist_name=='tlist':
+            n, lst = lst.contents.n, lst.contents.tria
+        elif xlist_name=='blist':
+            n, lst = lst.contents.n, lst.contents.bond
+        else:
+            raise ValueError(f'{xlist_name} not in vlist, clist, tlist, or blist')
+        if as_pointer:
+            for i in range(n):
+                yield lst[i]
+        else:
+            for i in range(n):
+                yield lst[i].contents
 
 
 if __name__=="__main__":

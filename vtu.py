@@ -552,12 +552,14 @@ def print_many(my_vtu: PyVtu, vertices: list, ext_label: str = ""):
     print(f"neis{ext_label}={{", ",".join(neighborhoods), "}")
 
 
-def reconstruct_shape_operator(self) -> np.array:
+def reconstruct_shape_operator(v: PyVtu) -> np.array:
         """Reconstruct the shape tensor from eigenvectors and eigenvalues"""
-        ee0 = (self.eigenvalue_0[:,np.newaxis,np.newaxis]*(self.eig0[:,np.newaxis,:]*self.eig0[:,:,np.newaxis]))
-        ee1 = (self.eigenvalue_1[:,np.newaxis,np.newaxis]*(self.eig1[:,np.newaxis,:]*self.eig1[:,:,np.newaxis]))
-        ee2 = (self.eigenvalue_2[:,np.newaxis,np.newaxis]*(self.eig2[:,np.newaxis,:]*self.eig2[:,:,np.newaxis]))
-        return ee0+ee1+ee2    
+        g=np.stack((v.eig0,v.eig1,v.eig2),axis=1)
+        s=np.zeros(g.shape)
+        s[:,0,0]=v.eigenvalue_0
+        s[:,1,1]=v.eigenvalue_1
+        s[:,2,2]=v.eigenvalue_2
+        return np.einsum("nij,njk,nlk->nil",g,s,g)
 
 
 def get_nematic_order_parameter(v:PyVtu, update_vtu=False):
@@ -667,7 +669,4 @@ def saddle_vtu_indices(v: PyVtu, num=50, direction: tuple=(1,0,0)):
     edge_bond = bottom[left]^bottom[right]
     edge = np.isin(v.indices,np.unique(edge_bond))
     return v.indices[edge][(v.pos[edge]@direction).argsort()[-num:]]
-
-
-
 
