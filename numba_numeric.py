@@ -123,12 +123,29 @@ def connected_components(nvtx, blist, v_keep=None):
             v_lowlink[node] = i
     return CC, v_lowlink
 
+
 #%%
 ####################################
 # individual processing functions: #
 ####################################
 # get various quantities from PyVtu arrays
 # not bundled into the big functions
+
+
+def clusterize_blist(blist):
+    """Clusterize blist"""
+    blist = blist.copy()
+    vtx = np.unique(blist)
+    n = vtx.max()
+    # convert "real" indices to range [1,4,900]->[0,1,2]
+    idx = np.arange(len(vtx))
+    vtx_idx = np.zeros(n+1, int)
+    vtx_idx[vtx] = idx
+    blist = vtx_idx[blist]
+    CC, _ = connected_components(len(vtx), blist)
+    # map cluster back from range to the real vertex indices
+    clusters = [[vtx[i] for i in clst] for clst in CC]
+    return clusters
 
 @njit(cache=True, error_model='numpy')
 def bonding_ratio(blist, bonding):

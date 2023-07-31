@@ -91,14 +91,6 @@ def size_normalize(data: np.array, max_size=800, min_size=50):
     return _copy
 
 
-def str_single(d: dict):
-    """Get String representing single keys."""
-    if d:
-        return f"{d}"
-    else:
-        return ""
-
-
 ColorPlotLimits = namedtuple('ColorPlotLimits',
                              ['xmin', 'xmax', 'ymin', 'ymax',
                               'datamin', 'datamax'])
@@ -131,13 +123,6 @@ ColorPlotLimits.__and__ = (lambda a, b:
                                            min(a.ymax, b.ymax),
                                            max(a.datamin, b.datamin),
                                            min(a.datamax, b.datamax)))
-
-
-def labels_and_title(axe, xlabel, ylabel, title):
-    """Set labels on axis."""
-    axe.set_xlabel(xlabel)
-    axe.set_ylabel(ylabel)
-    axe.set_title(title)
 
 
 def color_plot(axe, X, Y, data, limits, xlabel, ylabel, title,

@@ -27,7 +27,7 @@ def is_nondigit(path) -> bool:
 
 
 def timestep_in(path) -> bool:
-    """Return True if path tail contains timestep."""
+    """Return True if path tail contains "timestep"."""
     return 'timestep' in os.path.split(path)[-1]
 
 
@@ -65,8 +65,8 @@ def compile_tape_regex_option(option_list):
     return re.compile(f"^({'|'.join(map(str,option_list))})=(.*)",re.MULTILINE)
 
 
-
 def _string_to_value(value):
+    """Conert string to value, int first, then double"""
     try:
         return int(value)
     except ValueError:
@@ -101,7 +101,7 @@ def from_tape_is_adhered_to_sphere(tape, pos):
 
 
 def a_in_b_dict(a: dict, b: dict) -> bool:
-    """Return True if a[key] in b[key] for all b.keys()."""
+    """Return True if for all keys a[key] is in b[key]."""
     return all(a[key] in b[key] for key in b.keys())
 
 
@@ -214,34 +214,3 @@ def normalize_axis(vectors, axis=-1):
     n[n == 0] = 1
     return vectors/n
 
-
-class _A():
-    """Numpy array shorthand: A[] -> np.array([]).
-
-    Use to make arrays in a similar manner to lists
-    m = A[[1,2,3],    -> array([[1, 2, 3],
-          [4,5,6]]              [4, 5, 6]])
-    np.array can be used with kwargs 
-    A(dtype=float)[1,2,3] -> np.array([1., 2., 3.])
-    """
-
-    def __init__(self, **kwargs):
-        self._kwargs = kwargs
-
-    def __getitem__(self, s):
-        """Return array."""
-        if type(s) is tuple:
-            return np.array(s, **self._kwargs)
-        if type(s) is slice:
-            a, b, c = s.start, s.step, s.stop
-            b = b if b is not None else 1
-            a = a if a is not None else 0 if b > 0 else -1
-            c = c if c is not None else a+b+1 if b is not None else a+1
-            return np.arange(a, c, b, **self._kwargs)
-        return np.array((s,), **self._kwargs)
-
-    def __call__(self, **kwargs):
-        return _A(**{**kwargs, **self._kwargs})
-
-
-A = _A()
