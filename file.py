@@ -44,60 +44,6 @@ def is_tarfile_and_not_directory(x):
     return False
 
 
-def extract_sim_params(sim_parameter_file, expected_keys=None) -> dict:
-    """Attempt to extract parameters from file.
-
-    if keys are provided, raise error when extracted keys don't match'
-
-    Currently, too many formats:
-        - json,
-        - plaintext key=v,
-        - plaintext keys,_line,vals,_line,
-        - plaintext keys,_line, key: val val... lines
-    expected_keys should be a dict.keys() object
-    """
-    try:
-        with open(sim_parameter_file, 'r') as f:
-            # json
-            folder_params = json.load(f)
-    except json.JSONDecodeError:
-        with open(sim_parameter_file, 'r') as f:
-            text_params = f.read().splitlines()
-            if len(text_params) == 1:
-                # key=value, ...
-                folder_params = {a.split('=')[0]: float(a.split('=')[1])
-                                 for a in text_params[0].split(', ')}
-            elif len(text_params) == 2:
-                if not text_params[1][0].isalpha():
-                    # keys,|vals,
-                    folder_params = {key: float(value) for key, value in
-                                     zip(text_params[0].split(','),
-                                         text_params[1].split(','))}
-                else:
-                    # keys| key: params
-                    keys = [line.split(':')[0] for line in text_params[1:]]
-                    vals = [[float(x) for x in line.split()[1:]]
-                            for line in text_params[1:]]
-                    folder_params = dict(zip(keys, vals))
-            else:
-                if text_params[1][0].isalpha():
-                    # keys| key: params with more than 1 keys
-                    keys = [line.split(':')[0] for line in text_params[1:]]
-                    vals = [[float(x) for x in line.split()[1:]]
-                            for line in text_params[1:]]
-                    folder_params = dict(zip(keys, vals))
-                else:
-                    # implicit keys!
-                    if expected_keys is not None:
-                        vals = [[float(x) for x in line.split()]
-                                for line in text_params[1:]]
-                        folder_params = dict(zip(expected_keys, vals))
-            if expected_keys is not None:
-                if expected_keys != folder_params.keys():
-                    raise ValueError("improper keys")
-    return folder_params
-
-
 def get_folder_params(folder, param_file_name='parameters.json',
                       parameters=None, param_idx=None) -> dict:
     """Attempt to get folder parameters dictionary from folder.
@@ -121,77 +67,6 @@ def get_folder_params(folder, param_file_name='parameters.json',
                 param_idx = valid_simulation_dict(folder)
             folder_params = {key: parameters[key][idx] for
                                 key, idx in param_idx.items()}
-    return folder_params
-
-
-def fix_folder_params(folder, param_file_name='parameters.json',
-                      parameters=None, param_idx=None, expected_keys=None,
-                      giveup=[10]) -> dict:
-    """Attempt to get folder parameters dictionary from folder.
-
-    parameters: dictionary of all true parameters {param: []}
-    param_idx: dictionary of folder param index {param: idx}
-    expected_keys: dictionary keys of parameters {param:}.keys()
-    giveup: internal variable
-
-    Attempt to get the genuine parameters of the folder by
-    running extract_sim_params on
-        1. param_file_name
-        2. possible parameter file names
-    if fails, try to use parameters and name-derived index to get
-    the parameters. Increment the giveup: once ten function calls
-    fail, switch to parameter[ind] exclusivly
-    """
-    folder_params = None
-    if giveup[0] != 0:
-        try:
-            folder_params = extract_sim_params(
-                                        os.path.join(folder, param_file_name),
-                                        expected_keys)
-        except FileNotFoundError:
-            # look for file in folder:
-            rawlist = os.listdir(folder)
-            possibilities = ['parameters', 'parameter',
-                             'simulation_parameters', 'simulations_parameters']
-            possibilities += [x + ".json" for x in possibilities]
-            if expected_keys is None:
-                if parameters is not None:
-                    expected_keys = parameters.keys()
-                elif param_idx is not None:
-                    expected_keys = param_idx.keys()
-                else:
-                    param_idx = valid_simulation_dict(folder)
-                    expected_keys = param_idx.keys()
-            found = False
-            for pos in possibilities:
-                if pos in rawlist:
-                    folder_params = extract_sim_params(
-                                    os.path.join(folder, pos),
-                                    expected_keys)
-                    found = True
-                    break
-            if not found:
-                if parameters is not None:
-                    if param_idx is None:
-                        param_idx = valid_simulation_dict(folder)
-                    folder_params = {key: parameters[key][idx] for
-                                     key, idx in param_idx.items()}
-                    giveup[0] = giveup[0]-1
-        except ValueError:
-            if parameters is not None:
-                if param_idx is None:
-                    param_idx = valid_simulation_dict(folder)
-                folder_params = {key: parameters[key][idx] for
-                                 key, idx in param_idx.items()}
-                giveup[0] = giveup[0]-1
-    else:
-        if parameters is not None:
-            if param_idx is None:
-                param_idx = valid_simulation_dict(folder)
-            folder_params = {key: parameters[key][idx] for
-                             key, idx in param_idx.items()}
-    with open(os.path.join(folder, param_file_name),'w') as f:
-        json.dump(folder_params,f)
     return folder_params
 
 
